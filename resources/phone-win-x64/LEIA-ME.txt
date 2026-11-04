@@ -1,3 +1,0 @@
-Coloque aqui o workscape-phone-engine.exe (motor SIP do Workscape Phone) antes de gerar o instalador.
-Origem: Release do repositorio WorkScape-intra-net no GitHub. Confira o SHA-256 com o SHA256SUMS.txt do Release.
-Licenca: o motor liga o PJSIP (GPL v2 ou licenca comercial). Ver docs/LICENCAS.md do repositorio WorkScape-intra-net.
