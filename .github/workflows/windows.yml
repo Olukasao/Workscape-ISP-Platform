@@ -1,0 +1,71 @@
+name: Build Windows x64
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Gerar entrega oficial assinada (requer configurar secrets e canal HTTPS)
+        type: boolean
+        default: false
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node --test deploy/updates/tests/distribution.test.mjs
+      - run: npx playwright install chromium
+      - run: npm run test:e2e
+      - name: Build manual para homologação
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && !inputs.release }}
+        run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Build oficial assinado
+        if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.release }}
+        run: npm run dist:win:release
+        env:
+          WORKSPACE_UPDATE_URL: ${{ vars.WORKSPACE_UPDATE_URL }}
+          WORKSPACE_UPDATE_PUBLISHER: ${{ vars.WORKSPACE_UPDATE_PUBLISHER }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - name: Validar assinatura do instalador oficial
+        if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.release }}
+        shell: powershell
+        run: |
+          $sig = Get-AuthenticodeSignature ./release/AcessaWorkspace-Setup.exe
+          if ($sig.Status -ne 'Valid') { throw 'Assinatura do instalador invalida.' }
+      - name: Preservar payload da nova versão para teste de migração
+        shell: powershell
+        run: Copy-Item ./release/AcessaWorkspace-Setup.exe ./release/current-test-setup.exe
+      - name: Gerar fixture do instalador legado
+        run: >-
+          npx electron-builder --config electron-builder.config.cjs --win nsis
+          --prepackaged release/win-unpacked --publish never
+          --config.nsis.script=assets/installer.nsi
+          --config.nsis.artifactName=LegacyFixture-Setup.exe
+          --config.directories.output=release/legacy-fixture
+          --config.extraMetadata.version=0.4.1
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verificar instalação, migração e reinstalação no Windows
+        shell: powershell
+        run: ./scripts/test-installer-windows.ps1 -Installer ./release/current-test-setup.exe -LegacyInstaller ./release/legacy-fixture/LegacyFixture-Setup.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AcessaWorkspace-Windows-x64
+          path: |
+            release/AcessaWorkspace-*-Setup.exe
+            release/AcessaWorkspace-Setup.exe
+            release/AcessaWorkspace-Portable.exe
+            release/*.blockmap
+            release/latest.yml
+          if-no-files-found: error

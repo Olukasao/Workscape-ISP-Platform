@@ -1,0 +1,289 @@
+/* ==========================================================================
+   Ponte visual para os módulos da intranet (src/legacy).
+   Os módulos usam CSS Modules com um vocabulário comum (page, shell,
+   header, hero, primaryButton, backButton, card, modal…). O nome gerado é
+   `_${local}_${hash}`, então `[class*="_card_"]` alcança a classe local
+   exata. Os módulos carregam depois deste arquivo, por isso os seletores
+   repetem `.legacy-module` para ganhar especificidade sem `!important`.
+   Nada aqui altera estrutura, conteúdo ou comportamento.
+   ========================================================================== */
+
+.legacy-module {
+  height: 100%;
+  overflow: auto;
+  color: var(--ink);
+  font-family: var(--font-body);
+  --legacy-surface: var(--surface);
+  --legacy-surface-2: var(--surface-2);
+}
+
+/* Módulos só escuros mantêm a superfície navy no tema claro */
+:root[data-theme="claro"] .legacy-module[data-theme-support="dark"] {
+  background: var(--canvas-glow), var(--canvas);
+  color: var(--ink);
+}
+
+/* Tipografia da marca em todas as telas */
+.legacy-module *:not(code, pre, kbd, samp, svg, svg *) {
+  font-family: inherit;
+}
+.legacy-module :is(h1, h2, h3, h4) {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+.legacy-module.legacy-module :is(h1) {
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+.legacy-module.legacy-module :is(h2, h3) {
+  font-weight: 650;
+}
+
+/* Raiz da página: o canvas do workspace aparece por trás */
+.legacy-module.legacy-module
+  :is(
+    [class*="_page_"],
+    [class*="_embeddedPage_"],
+    [class*="Page_"],
+    [class*="_container_"]
+  ):where(.legacy-module > *, .legacy-module > * > *) {
+  background: transparent;
+  min-height: 100%;
+}
+.legacy-module.legacy-module :is([class*="_page_"], [class*="Page_"]):where(.legacy-module > *) {
+  padding: 26px 36px 48px;
+}
+.legacy-module.legacy-module [class*="_shell_"] {
+  width: min(100%, 1440px);
+}
+
+/* Cabeçalho das páginas: painel da marca (no tema claro, só nos módulos
+   que não têm versão clara própria) */
+.legacy-module.legacy-module:is(:root:not([data-theme="claro"]) *, [data-theme-support="dark"])
+  :is([class*="_page_"], [class*="_shell_"], [class*="Page_"])
+  > :is([class*="_header_"], [class*="_hero_"], [class*="_headerPanel_"]) {
+  padding: 22px 24px;
+  border: 1px solid rgba(79, 134, 255, 0.3);
+  border-radius: var(--r-xl);
+  color: #fff;
+  background:
+    radial-gradient(70% 140% at 100% 0%, rgba(47, 107, 255, 0.38), transparent 62%),
+    linear-gradient(160deg, var(--navy-800), var(--navy-900));
+  box-shadow: 0 24px 60px -34px rgba(47, 107, 255, 0.6);
+}
+.legacy-module.legacy-module:is(:root:not([data-theme="claro"]) *, [data-theme-support="dark"])
+  :is([class*="_page_"], [class*="_shell_"], [class*="Page_"])
+  > :is([class*="_header_"], [class*="_hero_"], [class*="_headerPanel_"])
+  :is(h1, h2) {
+  color: #fff;
+}
+.legacy-module.legacy-module:is(:root:not([data-theme="claro"]) *, [data-theme-support="dark"])
+  :is([class*="_page_"], [class*="_shell_"], [class*="Page_"])
+  > :is([class*="_header_"], [class*="_hero_"], [class*="_headerPanel_"])
+  p {
+  color: rgba(226, 235, 255, 0.74);
+}
+
+/* Rótulos de seção */
+.legacy-module.legacy-module :is([class*="_kicker_"], [class*="_eyebrow_"]) {
+  color: var(--cyan-400);
+  letter-spacing: 0.12em;
+  font-weight: 800;
+}
+
+/* ---------- Botões ---------- */
+.legacy-module.legacy-module
+  :is(
+    [class*="_primaryButton_"],
+    [class*="_primaryAction_"],
+    [class*="_bannerEditButton_"],
+    [class*="_salesTestButton_"],
+    [class*="_clearButton_"],
+    [class*="_fullAgendaButton_"],
+    [class*="_lessonAdminEditButton_"]
+  ) {
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  color: #fff;
+  background: var(--primary);
+  box-shadow:
+    0 8px 22px -12px rgba(47, 107, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  transition:
+    background-color var(--dur-1),
+    box-shadow var(--dur-2),
+    transform var(--dur-1);
+}
+.legacy-module.legacy-module
+  :is(
+    [class*="_primaryButton_"],
+    [class*="_primaryAction_"],
+    [class*="_bannerEditButton_"],
+    [class*="_salesTestButton_"],
+    [class*="_clearButton_"],
+    [class*="_fullAgendaButton_"],
+    [class*="_lessonAdminEditButton_"]
+  ):hover:not(:disabled) {
+  background: var(--primary-hover);
+  box-shadow: 0 12px 28px -12px rgba(58, 214, 255, 0.7);
+}
+.legacy-module.legacy-module :is([class*="_secondaryButton_"], [class*="_ghostButton_"]) {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: none;
+  font-weight: 650;
+}
+.legacy-module.legacy-module :is([class*="_secondaryButton_"], [class*="_ghostButton_"]):hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+.legacy-module.legacy-module [class*="_dangerButton_"] {
+  border: 1px solid color-mix(in srgb, var(--crit) 45%, transparent);
+  border-radius: var(--r-pill);
+  color: var(--crit);
+  background: transparent;
+  font-weight: 650;
+}
+.legacy-module.legacy-module [class*="_dangerButton_"]:hover:not(:disabled) {
+  color: #fff;
+  background: var(--signal-red);
+}
+.legacy-module.legacy-module [class*="_backButton_"] {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  background: var(--surface);
+  box-shadow: none;
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+.legacy-module.legacy-module [class*="_backButton_"]:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.legacy-module.legacy-module :is([class*="_primaryButton_"], [class*="_secondaryButton_"], [class*="_dangerButton_"], [class*="_backButton_"]):active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ---------- Superfícies ---------- */
+.legacy-module.legacy-module
+  :is(
+    [class*="_card_"],
+    [class*="_statCard_"],
+    [class*="_resultCard_"],
+    [class*="_sectionBlock_"],
+    [class*="_panel_"],
+    [class*="_tableWrap_"]
+  ) {
+  border-color: var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.legacy-module.legacy-module [class*="_statCard_"] strong {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+/* Modais */
+.legacy-module.legacy-module [class*="_modalOverlay_"] {
+  background: var(--overlay);
+  backdrop-filter: blur(3px);
+}
+.legacy-module.legacy-module :is([class*="_modal_"], [class*="_modalCard_"], [class*="_modalContent_"]) {
+  border: 0;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-pop);
+}
+.legacy-module.legacy-module [class*="_modalHeader_"] {
+  border-bottom-color: var(--line);
+}
+
+/* ---------- Campos ---------- */
+.legacy-module.legacy-module
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background-color: var(--surface-sunken);
+  color: var(--ink);
+}
+.legacy-module.legacy-module
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea):focus {
+  border-color: var(--primary);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  outline: none;
+}
+.legacy-module.legacy-module [class*="_searchBox_"] {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+}
+.legacy-module.legacy-module [class*="_searchBox_"]:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.legacy-module.legacy-module [class*="_searchBox_"] input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.legacy-module.legacy-module [class*="_field_"] > span:first-child,
+.legacy-module.legacy-module [class*="_field_"] > label {
+  color: var(--ink-2);
+}
+.legacy-module input[type="checkbox"],
+.legacy-module input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+/* ---------- Tabelas ---------- */
+.legacy-module.legacy-module table th {
+  color: var(--ink-3);
+  font-size: var(--fs-2xs);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  border-color: var(--line);
+}
+.legacy-module.legacy-module table td {
+  border-color: var(--line);
+}
+
+/* ---------- Mensagens ---------- */
+.legacy-module.legacy-module [class*="_errorBox_"] {
+  border: 1px solid color-mix(in srgb, var(--crit) 30%, transparent);
+  border-radius: var(--r-md);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+.legacy-module.legacy-module [class*="_successBox_"] {
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  border-radius: var(--r-md);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.legacy-module.legacy-module :is([class*="_loadingBox_"], [class*="_emptyState_"]) {
+  border-color: var(--line);
+  border-radius: var(--r-lg);
+  color: var(--ink-3);
+}
+
+/* Janelas menores */
+@media (max-width: 1100px) {
+  .legacy-module.legacy-module :is([class*="_page_"], [class*="Page_"]):where(.legacy-module > *) {
+    padding: 20px 20px 36px;
+  }
+}
+
+/* Módulos com versão clara própria: rótulos com contraste no fundo claro */
+:root[data-theme="claro"] .legacy-module[data-theme-support="adaptive"] :is([class*="_kicker_"], [class*="_eyebrow_"]) {
+  color: var(--primary-text);
+}

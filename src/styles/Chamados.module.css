@@ -1,0 +1,26 @@
+.tableWrap {
+  /* A tabela do SGP pode vir com muitas colunas; sem isso ela ultrapassava a
+     borda arredondada do card, e o fundo não acompanhava o que vazava. */
+  overflow-x: auto;
+  max-width: 100%;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: var(--fs-sm);
+}
+.table th {
+  color: var(--secondary-color);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.table tbody tr:hover {
+  background: var(--bg-secondary);
+}

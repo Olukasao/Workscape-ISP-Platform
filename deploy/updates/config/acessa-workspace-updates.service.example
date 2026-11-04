@@ -1,0 +1,22 @@
+# Exemplo: a TI deve definir certificados e binding antes de instalar o serviço.
+[Unit]
+Description=Distribuicao HTTPS de atualizacoes do Acessa Workspace
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=noc
+WorkingDirectory=/home/noc/acessa-workspace-updates
+EnvironmentFile=/home/noc/acessa-workspace-updates/config/server.env
+ExecStart=/usr/local/bin/node scripts/server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/home/noc/acessa-workspace-updates/public
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

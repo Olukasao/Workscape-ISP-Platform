@@ -1,0 +1,114 @@
+import type { SgpReportKey } from "../../electron/sgpReports";
+import type { UpdateStatus } from "../../electron/updatePolicy";
+import type { ServerConfig } from "../../electron/policy";
+import type { BrowserSite, BrowserState } from "../../electron/browserTabs";
+import type { DetachedKind } from "../../electron/detachedWindows";
+import type { Workspace as WorkspaceDto, WorkspaceItem as WorkspaceItemDto } from "../../electron/workspaces";
+import type { LocalAiStatus, LocalAiTask } from "../../electron/localAi";
+import type { SgpChamadosResultado } from "../../electron/sgpChamados";
+import type { PhoneEvent, PhoneSnapshot } from "../../electron/phone";
+export {};
+declare global {
+  interface Window {
+    desktop?: {
+      updateStatus(): Promise<UpdateStatus>;
+      deviceInfo(): Promise<{ id: string; nome: string }>;
+      checkForUpdates(): Promise<UpdateStatus>;
+      installUpdate(): Promise<void>;
+      onUpdateStatus(callback: (value: UpdateStatus) => void): () => void;
+      getConfig(): Promise<ServerConfig>;
+      saveConfig(value: ServerConfig): Promise<ServerConfig>;
+      request(value: unknown): Promise<{ status: number; data: any }>;
+      download(value: {
+        url: string;
+        name: string;
+        token?: string;
+      }): Promise<boolean>;
+      getSession(): Promise<{ token: string } | null>;
+      saveSession(value: { token: string }): Promise<void>;
+      clearSession(): Promise<void>;
+      setZoom(percent: number): Promise<void>;
+      onZoomStep(callback: (action: "in" | "out" | "reset") => void): () => void;
+      window(
+        action: "minimize" | "maximize" | "close" | "reload",
+      ): Promise<void>;
+      notify(value: {
+        title: string;
+        body: string;
+        target: string;
+        sender?: string;
+        context?: string;
+        kind?: "direct" | "group" | "system";
+        avatar?: string;
+        tone?: "crit" | "warn" | "info";
+      }): Promise<void>;
+      browserShow(value: {
+        site: BrowserSite;
+        bounds: { x: number; y: number; width: number; height: number };
+      }): Promise<void>;
+      browserBounds(value: { x: number; y: number; width: number; height: number }): Promise<void>;
+      browserHide(): Promise<void>;
+      agendaWebSession(value: { token: string }): Promise<void>;
+      browserAction(value: {
+        site: BrowserSite;
+        action: "back" | "forward" | "reload" | "home" | "go" | "zoomIn" | "zoomOut" | "zoomReset";
+        value?: string;
+      }): Promise<void>;
+      onBrowserState(callback: (value: BrowserState) => void): () => void;
+      detachedOpen(value: { kind: DetachedKind; search?: string }): Promise<void>;
+      detachedClose(value: { kind: DetachedKind; reintegrar: boolean }): Promise<void>;
+      detachedCompact(value: { kind: DetachedKind; compacto: boolean }): Promise<void>;
+      workspacesList(owner: string): Promise<{ lista: WorkspaceDto[]; abertas: WorkspaceItemDto[] }>;
+      workspacesSave(value: { owner: string; name: string; items?: WorkspaceItemDto[] }): Promise<WorkspaceDto>;
+      workspacesDelete(value: { owner: string; id: string }): Promise<void>;
+      workspacesOpen(value: { owner: string; id: string }): Promise<void>;
+      workspacesTile(value: { kinds: DetachedKind[]; pinned: boolean; compact: boolean }): Promise<WorkspaceItemDto[]>;
+      workspacesCloseAll(): Promise<void>;
+      detachedPin(value: { kind: DetachedKind; ligado: boolean }): Promise<void>;
+      detachedStatus(kind: DetachedKind): Promise<{ open: boolean }>;
+      onDetachedState(callback: (value: { kind: DetachedKind; open: boolean }) => void): () => void;
+      onDetachedDeeplink(callback: (search: string) => void): () => void;
+      unread(value: number): Promise<void>;
+      openExternal(key: "painel-contratacoes" | SgpReportKey): Promise<void>;
+      copyText(text: string): Promise<boolean>;
+      dashboardStart(): Promise<void>;
+      dashboardStop(): Promise<void>;
+      dashboardRefresh(): Promise<void>;
+      onDashboardEvent(callback: (channel: string, payload: unknown) => void): () => void;
+      onNavigate(callback: (path: string) => void): () => void;
+      sgpListarChamados(key: SgpReportKey): Promise<SgpChamadosResultado>;
+      openSgpLink(url: string): Promise<void>;
+      testarConexao?(): Promise<{
+        linhas: { servico: string; host: string; porta: number; ok: boolean; ms: number; erro?: string }[];
+        rede: string | null;
+        vpns: { nome: string; servidor: string; tipo: string; tunelDividido: boolean; conectada: boolean; temRota: boolean }[];
+        conflito: string | null;
+        windows: boolean;
+      }>;
+      corrigirVpn?(): Promise<{ ok: boolean; mensagem: string; corrigidas: string[]; jaTinham: string[] }>;
+      copyImage?(bytes: Uint8Array): Promise<void>;
+      alarmAttention?(): Promise<void>;
+      phoneState?(): Promise<PhoneSnapshot>;
+      phoneConnect?(token: string): Promise<{ ok: boolean; erro?: string }>;
+      phoneDisconnect?(): Promise<{ ok: boolean; erro?: string }>;
+      phoneCall?(numero: string): Promise<{ ok: boolean; erro?: string }>;
+      phoneAnswer?(id: number): Promise<{ ok: boolean; erro?: string }>;
+      phoneReject?(id: number): Promise<{ ok: boolean; erro?: string }>;
+      phoneHangup?(id: number): Promise<{ ok: boolean; erro?: string }>;
+      phoneMute?(id: number, on: boolean): Promise<{ ok: boolean; erro?: string }>;
+      phoneHold?(id: number, on: boolean): Promise<{ ok: boolean; erro?: string }>;
+      phoneDtmf?(id: number, digits: string): Promise<{ ok: boolean; erro?: string }>;
+      phoneTransfer?(id: number, to: string): Promise<{ ok: boolean; erro?: string }>;
+      phoneDiretorio?(lista: { ramal: string; nome: string }[]): Promise<{ ok: boolean; erro?: string }>;
+      phoneDnd?(on: boolean): Promise<{ ok: boolean; erro?: string }>;
+      phoneDevices?(): Promise<{ ok: boolean; erro?: string }>;
+      phoneSetDevices?(value: { capture?: number; playback?: number }): Promise<{ ok: boolean; erro?: string }>;
+      phoneDiagnostico?(): Promise<{ motor: string | null; log: string[] }>;
+      onPhoneEvent?(callback: (event: PhoneEvent) => void): () => void;
+      localAiStatus(): Promise<LocalAiStatus>;
+      localAiComplete(value: { task: LocalAiTask; texto: string }): Promise<string>;
+      localAiChat(value: { mensagens: { role: "user" | "assistant"; content: string }[] }): Promise<string>;
+      onLocalAiStatus(callback: (value: LocalAiStatus) => void): () => void;
+    };
+  }
+}

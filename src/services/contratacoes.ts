@@ -1,0 +1,97 @@
+import { useEffect } from "react";
+import { create } from "zustand";
+import { socket } from "./socket";
+import { useNotices, useSession } from "../stores/workspace";
+
+// Contratações pendentes do site (acessanet.com.br). O backend do Chat Interno
+// consulta a API do site com token próprio e repassa pelo socket do chat:
+//   contratacoes:resumo -> { conectado, pendentes, itens, atualizadoEm }
+//   contratacoes:novo   -> { itens }  (pedido novo desde a última leitura)
+export type Contratacao = {
+  id: number;
+  protocolo?: string;
+  cliente?: string;
+  plano?: string;
+  cidade?: string;
+  criadoEm?: string;
+};
+type Estado = {
+  recebido: boolean;
+  conectado: boolean;
+  pendentes: number;
+  itens: Contratacao[];
+  atualizadoEm: string | null;
+  novos: number[];
+};
+const vazio: Estado = {
+  recebido: false,
+  conectado: false,
+  pendentes: 0,
+  itens: [],
+  atualizadoEm: null,
+  novos: [],
+};
+export const useContratacoes = create<Estado & { limparNovos: () => void }>((set) => ({
+  ...vazio,
+  limparNovos: () => set({ novos: [] }),
+}));
+
+export const descreverPedido = (item: Contratacao) =>
+  [item.plano, item.cidade].filter(Boolean).join(" · ");
+
+/** Montado uma vez no shell, junto da conexão do chat. */
+export function useContratacoesFeed() {
+  const user = useSession((s) => s.user);
+  useEffect(() => {
+    if (!user) {
+      useContratacoes.setState(vazio);
+      return;
+    }
+    const resumo = (dados: Partial<Estado> | null) => {
+      if (!dados || typeof dados !== "object") return;
+      useContratacoes.setState({
+        recebido: true,
+        conectado: !!dados.conectado,
+        pendentes: Math.max(0, Number(dados.pendentes) || 0),
+        itens: Array.isArray(dados.itens) ? dados.itens : [],
+        atualizadoEm: dados.atualizadoEm || new Date().toISOString(),
+      });
+    };
+    const novo = ({ itens = [] }: { itens?: Contratacao[] } = {}) => {
+      if (!itens.length) return;
+      useContratacoes.setState((s) => ({
+        novos: [...new Set([...itens.map((i) => i.id), ...s.novos])].slice(0, 50),
+      }));
+      const principal = itens[0];
+      const title =
+        itens.length > 1
+          ? `${itens.length} novas contratações no site`
+          : "Nova contratação no site";
+      const body = [principal.cliente, descreverPedido(principal)]
+        .filter(Boolean)
+        .join(" — ");
+      useNotices.getState().add({
+        id: `contratacao:${itens.map((i) => i.id).join(",")}`,
+        title,
+        body,
+        target: "/contratacoes",
+        time: new Date().toISOString(),
+      });
+      if (!location.hash.startsWith("#/contratacoes") || !document.hasFocus())
+        void window.desktop?.notify({
+          title,
+          body,
+          target: "/contratacoes",
+          sender: principal.cliente || undefined,
+          context: "Contratação pelo site",
+          kind: "system",
+        });
+    };
+    socket.on("contratacoes:resumo", resumo);
+    socket.on("contratacoes:novo", novo);
+    return () => {
+      socket.off("contratacoes:resumo", resumo);
+      socket.off("contratacoes:novo", novo);
+    };
+  }, [user]);
+}

@@ -1,0 +1,390 @@
+/* Tela de acesso: feixe de fibras ópticas convergindo para o formulário. */
+.acesso {
+  --abismo: #03050b;
+  --fibra: #2f6bff;
+  --foton: #9fd3ff;
+  --sinal: #eaf2ff;
+  --falha: #ff5a6e;
+  --vidro: rgba(10, 16, 32, 0.62);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  grid-template-rows: auto 1fr auto;
+  column-gap: clamp(32px, 6vw, 112px);
+  height: calc(var(--workspace-viewport-height, 100dvh) - var(--titlebar-h));
+  padding: clamp(24px, 4.5vh, 44px) clamp(24px, 5vw, 72px);
+  overflow: hidden;
+  color: var(--sinal);
+  background: var(--abismo);
+  font-family: var(--font-body);
+}
+
+/* Céu: duas luzes azuis muito lentas atrás das fibras. */
+.acesso-ceu {
+  position: absolute;
+  inset: -20%;
+  z-index: -2;
+  background:
+    radial-gradient(38% 42% at 72% 46%, rgba(47, 107, 255, 0.26), transparent 70%),
+    radial-gradient(30% 36% at 18% 88%, rgba(20, 60, 170, 0.32), transparent 72%),
+    radial-gradient(60% 60% at 50% 0%, rgba(30, 50, 110, 0.25), transparent 70%);
+  animation: acesso-ceu 26s ease-in-out infinite alternate;
+}
+.acesso-ceu::after {
+  /* Grão fino, para o preto não parecer chapado. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes acesso-ceu {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-3%, 2%, 0) scale(1.06); }
+}
+.acesso-fibras {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+.acesso-marca {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.acesso-marca img {
+  width: clamp(120px, 11vw, 150px);
+  height: auto;
+}
+.acesso-produto {
+  padding-left: 14px;
+  border-left: 1px solid rgba(159, 211, 255, 0.22);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(234, 242, 255, 0.82);
+}
+
+.acesso-texto {
+  position: relative;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  max-width: 34rem;
+  padding-bottom: clamp(8px, 4vh, 40px);
+}
+/* Sombra suave atrás do texto: as fibras passam por baixo sem atrapalhar a leitura. */
+.acesso-texto::before {
+  content: "";
+  position: absolute;
+  inset: -30% -25% -20% -40%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(3, 5, 11, 0.85), rgba(3, 5, 11, 0.5) 60%, transparent);
+  pointer-events: none;
+}
+.acesso-texto h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4.6vw, 4.1rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  color: var(--sinal);
+  text-wrap: balance;
+}
+.acesso-texto p {
+  margin-top: 18px;
+  max-width: 28rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(214, 226, 250, 0.66);
+  text-wrap: pretty;
+}
+
+/* Painel: vidro escuro, com uma linha de luz no topo onde as fibras chegam. */
+.acesso-painel {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  position: relative;
+  padding: 34px 32px 26px;
+  border-radius: 22px;
+  background: var(--vidro);
+  border: 1px solid rgba(159, 211, 255, 0.12);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 30px 80px -20px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(3, 5, 11, 0.6);
+  backdrop-filter: blur(18px) saturate(1.2);
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.acesso-painel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(159, 211, 255, 0.85), transparent);
+}
+.acesso.is-liberado .acesso-painel {
+  border-color: rgba(159, 211, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(159, 211, 255, 0.25), 0 0 80px rgba(47, 107, 255, 0.45), 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+}
+
+.acesso-cabeca h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.acesso-cabeca p {
+  margin: 6px 0 24px;
+  color: rgba(214, 226, 250, 0.6);
+  font-size: 0.95rem;
+}
+
+.acesso-aviso,
+.acesso-erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.acesso-aviso {
+  margin-bottom: 16px;
+  color: #ffd38a;
+}
+.acesso-erro {
+  margin: 0 0 14px;
+  color: #ff9aa6;
+}
+.acesso-aviso svg,
+.acesso-erro svg { flex-shrink: 0; margin-top: 2px; }
+
+/* Campos: a borda inferior acende da esquerda para a direita no foco, como luz entrando na fibra. */
+.acesso-campo {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.acesso-campo > span:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(214, 226, 250, 0.78);
+}
+.acesso-caps {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ffd38a;
+}
+.acesso-campo input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(159, 211, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(3, 5, 11, 0.55);
+  color: var(--sinal);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.acesso-campo input::placeholder { color: rgba(214, 226, 250, 0.3); }
+.acesso-campo input:hover:not(:disabled) { border-color: rgba(159, 211, 255, 0.26); }
+.acesso-campo input:focus {
+  border-color: rgba(120, 170, 255, 0.55);
+  background: rgba(8, 14, 30, 0.8);
+  box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.16);
+}
+.acesso-campo input:disabled { opacity: 0.7; }
+.acesso-campo > i {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--fibra), var(--foton));
+  box-shadow: 0 0 12px rgba(120, 170, 255, 0.8);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.acesso-campo:focus-within > i { transform: scaleX(1); }
+.acesso-senha {
+  position: relative;
+  display: block;
+}
+.acesso-senha input { padding-right: 48px; }
+.acesso-olho {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(214, 226, 250, 0.55);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.acesso-olho:hover { color: var(--sinal); background: rgba(159, 211, 255, 0.08); }
+.acesso-olho:focus-visible { outline: 2px solid var(--foton); outline-offset: 1px; }
+
+/* Sessão persistente: indicador sempre ativo no aplicativo para Windows. */
+.acesso-lembrar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px;
+  margin: 4px 0 20px;
+  font-size: 0.9rem;
+  color: rgba(234, 242, 255, 0.86);
+}
+.acesso-lembrar small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: rgba(214, 226, 250, 0.48);
+}
+.acesso-chave {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: rgba(159, 211, 255, 0.14);
+  transition: background-color 0.25s ease;
+}
+.acesso-chave::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(234, 242, 255, 0.85);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.acesso-chave.is-ativo { background: var(--fibra); box-shadow: 0 0 14px rgba(47, 107, 255, 0.55); }
+.acesso-chave.is-ativo::after { transform: translateX(14px); background: #fff; }
+
+/* Botão: um feixe de luz cruza o botão no hover e corre sem parar enquanto verifica o acesso. */
+.acesso-entrar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 50px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #3d78ff, #2457e6);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 10px 30px -8px rgba(47, 107, 255, 0.7);
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, filter 0.3s ease, background 0.4s ease;
+}
+.acesso-entrar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.38) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.acesso-entrar:hover:not(:disabled) { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 14px 38px -8px rgba(47, 107, 255, 0.95); }
+.acesso-entrar:hover:not(:disabled)::before { transform: translateX(120%); transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+.acesso-entrar.is-entrando::before { animation: acesso-feixe 1.1s linear infinite; }
+.acesso-entrar.is-liberado { background: linear-gradient(180deg, #5b92ff, #2f6bff); box-shadow: 0 0 0 1px rgba(159, 211, 255, 0.5), 0 0 40px rgba(120, 170, 255, 0.8); }
+.acesso-entrar:disabled { cursor: default; }
+.acesso-entrar:disabled:not(.is-entrando):not(.is-liberado) { filter: saturate(0.4) brightness(0.75); }
+.acesso-entrar:focus-visible { outline: 2px solid var(--foton); outline-offset: 3px; }
+.acesso-entrar-rotulo { display: inline-flex; align-items: center; gap: 9px; }
+@keyframes acesso-feixe {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
+.acesso-config {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(214, 226, 250, 0.55);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.acesso-config:hover:not(:disabled) { color: var(--sinal); background: rgba(159, 211, 255, 0.06); }
+.acesso-config:focus-visible { outline: 2px solid var(--foton); outline-offset: 2px; }
+
+.acesso-rodape {
+  grid-column: 1;
+  grid-row: 3;
+  font-size: 0.8rem;
+  color: rgba(214, 226, 250, 0.38);
+}
+
+/* Janela estreita: o formulário vai para o centro e o texto some; as fibras sobem até ele. */
+@media (max-width: 880px) {
+  .acesso {
+    grid-template-columns: minmax(0, 420px);
+    grid-template-rows: auto 1fr auto;
+    justify-content: center;
+  }
+  .acesso-marca { justify-content: center; }
+  .acesso-texto { display: none; }
+  .acesso-painel { grid-column: 1; grid-row: 2; }
+  .acesso-rodape { grid-column: 1; text-align: center; }
+}
+@media (max-height: 640px) {
+  .acesso-painel { padding: 24px 26px 18px; }
+  .acesso-cabeca p { margin-bottom: 16px; }
+  .acesso-campo { margin-bottom: 12px; }
+  .acesso-lembrar { margin-bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acesso-ceu { animation: none; }
+  .acesso-entrar::before { display: none; }
+}
+
+/* Chegada ao Workspace depois do login. */
+.workspace.is-chegada { animation: workspace-chegada 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes workspace-chegada {
+  from { opacity: 0; transform: scale(0.985); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace.is-chegada { animation: none; }
+}

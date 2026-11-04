@@ -1,0 +1,187 @@
+/* BACKUP VISUAL ANTIGO - WIKI INTERNA */
+.cupWikiCard {
+  min-height: 145px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 150px;
+  align-items: center;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid rgba(57, 211, 83, 0.2);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(57, 211, 83, 0.09), transparent 34%),
+    linear-gradient(125deg, rgba(7, 30, 39, 0.98), rgba(3, 18, 29, 0.98));
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.17);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.cupWikiCard:hover {
+  transform: translateY(-3px);
+}
+
+.cupWikiIcon {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--cup-green);
+  background: rgba(57, 211, 83, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(57, 211, 83, 0.13);
+}
+
+.cupWikiCopy {
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.cupInfoTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cupInfoTitleRow strong {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cupInfoTitleRow em {
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 210, 31, 0.25);
+  border-radius: 999px;
+  color: var(--cup-yellow);
+  background: rgba(255, 210, 31, 0.07);
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cupWikiCopy > small {
+  max-width: 330px;
+  margin-top: 9px;
+  color: #8198ac;
+  font-size: 9px;
+  line-height: 1.48;
+}
+
+.cupWikiCopy > b {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  color: var(--cup-green);
+  font-size: 8px;
+}
+
+.cupTacticalBoard {
+  width: 143px;
+  height: 96px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(57, 211, 83, 0.2);
+  border-radius: 12px;
+  opacity: 0.58;
+  background:
+    linear-gradient(90deg, transparent 49%, rgba(57, 211, 83, 0.18) 50%, transparent 51%),
+    radial-gradient(circle at center, transparent 0 22px, rgba(57, 211, 83, 0.16) 23px 24px, transparent 25px),
+    rgba(57, 211, 83, 0.025);
+}
+
+.cupTacticalBoard > svg {
+  position: absolute;
+  right: -8px;
+  bottom: -13px;
+  color: rgba(57, 211, 83, 0.28);
+}
+
+.cupTacticX,
+.cupTacticO,
+.cupTacticLine {
+  position: absolute;
+}
+
+.cupTacticX {
+  color: rgba(255, 210, 31, 0.58);
+  font-size: 18px;
+}
+
+.cupTacticX--one {
+  left: 18px;
+  top: 17px;
+}
+
+.cupTacticX--two {
+  right: 25px;
+  top: 38px;
+}
+
+.cupTacticO {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 212, 255, 0.48);
+  border-radius: 50%;
+}
+
+.cupTacticO--one {
+  left: 51px;
+  bottom: 16px;
+}
+
+.cupTacticO--two {
+  right: 40px;
+  top: 13px;
+}
+
+.cupTacticLine {
+  height: 1px;
+  background: rgba(57, 211, 83, 0.45);
+  transform-origin: left;
+}
+
+.cupTacticLine--one {
+  width: 47px;
+  left: 28px;
+  top: 31px;
+  transform: rotate(24deg);
+}
+
+.cupTacticLine--two {
+  width: 43px;
+  left: 59px;
+  bottom: 28px;
+  transform: rotate(-26deg);
+}
+
+@media (max-width: 1280px) {
+  .cupWikiCard {
+    grid-template-columns: 46px minmax(0, 1fr) 110px;
+  }
+
+  .cupTacticalBoard {
+    width: 108px;
+  }
+}
+
+@media (max-width: 620px) {
+  .cupWikiCard {
+    grid-template-columns: 46px minmax(0, 1fr);
+    padding: 18px;
+  }
+
+  .cupTacticalBoard {
+    display: none;
+  }
+}

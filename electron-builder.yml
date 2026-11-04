@@ -1,0 +1,45 @@
+appId: br.com.acessanet.workspace
+productName: Acessa Workspace
+asar: true
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - assets/icon.ico
+  - assets/icon.png
+  - package.json
+  - "!node_modules/**/*"
+# Motor da IA local (resumo de chamados / ajuda no chat): só o executável e as
+# DLLs necessárias ao llama-server (CPU, sem CUDA). O modelo (.gguf) não entra
+# aqui, é baixado sob demanda do servidor interno de atualizações.
+extraResources:
+  - from: resources/llama-win-x64
+    to: llama
+# Motor SIP do Workscape Phone (processo separado): baixe workscape-phone-engine.exe do Release do
+# repositório WorkScape-intra-net, confira o SHA256SUMS.txt e coloque em resources/phone-win-x64/.
+# Sem o arquivo, o app abre normalmente e o telefone cai no MicroSIP.
+  - from: resources/phone-win-x64
+    to: phone
+win:
+  icon: assets/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  include: assets/installer.nsh
+  installerLanguages: [pt_BR]
+  artifactName: AcessaWorkspace-${version}-Setup.exe
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  allowElevation: false
+  deleteAppDataOnUninstall: false
+  menuCategory: Acessa Workspace
+  createDesktopShortcut: true
+portable:
+  artifactName: AcessaWorkspace-Portable.exe
+
+afterPack: scripts/installer-inventory.cjs

@@ -1,0 +1,8 @@
+node_modules/
+incoming/
+public/
+.publish.lock
+config/server.env
+*.key
+*.pfx
+*.p12

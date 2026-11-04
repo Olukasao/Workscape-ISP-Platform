@@ -1,0 +1,8 @@
+{
+  "name": "acessa-workspace-updates",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Publicação e distribuição exclusiva de atualizações do Acessa Workspace",
+  "dependencies": { "js-yaml": "4.3.2" }
+}

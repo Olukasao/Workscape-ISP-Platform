@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Nova mensagem</title>
+<link rel="stylesheet" href="./toast.css" />
+</head>
+<body>
+<main class="toast" id="toast" role="alert" aria-live="assertive">
+  <span class="bar" aria-hidden="true"></span>
+  <span class="avatar" id="avatar" aria-hidden="true"></span>
+  <span class="pulso" aria-hidden="true"></span>
+  <button class="content" id="open" type="button">
+    <span class="tipo" id="tipo"></span>
+    <span class="head">
+      <strong id="title"></strong>
+      <time id="time"></time>
+    </span>
+    <span class="context" id="context"></span>
+    <span class="body" id="body"></span>
+  </button>
+  <button class="close" id="close" type="button" aria-label="Fechar aviso">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <span class="progress" id="progress" aria-hidden="true"></span>
+</main>
+<script src="./toast.js"></script>
+</body>
+</html>

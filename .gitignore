@@ -1,0 +1,24 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.env*
+!.env.example
+test-results/
+playwright-report/
+*.log
+
+build/update-files.json
+.workspace-dev/
+
+# Motor SIP do Workscape Phone: binario baixado do Release do WorkScape-intra-net, nao versionado
+resources/phone-win-x64/*.exe
+
+# Binários de terceiros (llama.cpp) e arquivo solto de teste: não versionar
+resources/llama-win-x64/
+--headless
+
+# Relatórios de teste e auditoria gerados localmente
+docs/*.json
+docs/dashboard-desktop-*.png
+docs/live-preview.png

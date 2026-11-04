@@ -1,0 +1,555 @@
+/* ==========================================================================
+   Chat Interno — camada visual sobre os componentes originais.
+   O CSS module do chat lê variáveis com prioridade para --user-* (a
+   aparência personalizada por cada usuário). Aqui só redefinimos os valores
+   de fallback e a forma dos elementos; a personalização continua valendo.
+   Seletores `[class*="_nome_"]` alcançam a classe local exata do módulo.
+   ========================================================================== */
+
+.chat-layout {
+  --primary-color: var(--navy-900);
+  --secondary-color: var(--primary);
+  --accent-color: var(--primary);
+  --bg-primary: var(--surface);
+  --bg-secondary: var(--surface-sunken);
+  --bg-dark: var(--canvas);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-3);
+  --border-color: var(--line);
+  --message-sent: var(--blue-500);
+  --message-received: var(--surface);
+  --online: var(--ok);
+  --away: var(--warn);
+  --offline: var(--ink-4);
+  --unread-color: var(--cyan-400);
+  --unread-color-dark: var(--blue-300);
+  --sidebar-bg: var(--surface);
+  --sidebar-surface: var(--surface-2);
+  --sidebar-surface-hover: var(--surface-2);
+  --sidebar-selected: var(--primary-soft);
+  --sidebar-selected-border: var(--primary);
+  --sidebar-text-primary: var(--ink);
+  --sidebar-text-secondary: var(--ink-3);
+  --sidebar-text-muted: var(--ink-4);
+  --sidebar-accent: var(--primary);
+  --sidebar-accent-light: var(--primary-text);
+  --sidebar-accent-soft: var(--primary-soft);
+  --sidebar-border: var(--line);
+  --sidebar-danger: var(--crit);
+  --sidebar-success: var(--ok);
+  --sidebar-warning: var(--warn);
+  --epr-bg-color: var(--surface);
+  font-family: var(--font-body);
+}
+:root[data-theme="claro"] .chat-layout {
+  --unread-color: var(--blue-500);
+  --message-received: #ffffff;
+}
+
+/* ---------- Lista de conversas ---------- */
+.chat-layout.chat-layout [class*="_conversaItem_"] {
+  position: relative;
+  margin: 1px 0;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  transition: background-color var(--dur-1);
+}
+.chat-layout.chat-layout [class*="_conversaItem_"]:hover {
+  background: var(--surface-2);
+}
+.chat-layout.chat-layout [class*="_conversaItem_"][class*="_active_"] {
+  background: var(--primary-soft);
+}
+.chat-layout.chat-layout [class*="_conversaItem_"][class*="_active_"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--grad-electric);
+}
+.chat-layout.chat-layout [class*="_conversaAvatar_"] {
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15px;
+  background: linear-gradient(140deg, #3f78ff, #1f4fd0);
+  box-shadow: none;
+}
+.chat-layout.chat-layout [class*="_grupoAvatar_"] {
+  background: linear-gradient(140deg, #2ab9e6, #1f4fd0);
+}
+.chat-layout.chat-layout [class*="_conversaNome_"] {
+  font-weight: 700;
+  font-size: var(--fs-md);
+  color: var(--ink);
+}
+.chat-layout.chat-layout [class*="_conversaPreview_"],
+.chat-layout.chat-layout [class*="_ultimaMensagem_"] {
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+}
+.chat-layout.chat-layout [class*="_conversaHora_"] {
+  font-size: var(--fs-2xs);
+  font-weight: 650;
+  color: var(--ink-4);
+  font-variant-numeric: tabular-nums;
+}
+.chat-layout.chat-layout [class*="_horaNaoLida_"] {
+  color: var(--unread-color);
+}
+.chat-layout.chat-layout [class*="_temNaoLida_"] [class*="_conversaNome_"] {
+  font-weight: 800;
+}
+.chat-layout.chat-layout [class*="_badgeNaoLido_"] {
+  min-width: 20px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background: var(--unread-color);
+  color: var(--navy-900);
+  font-size: 10.5px;
+  font-weight: 800;
+  box-shadow: none;
+}
+:root[data-theme="claro"] .chat-layout.chat-layout [class*="_badgeNaoLido_"] {
+  color: #fff;
+}
+.chat-layout.chat-layout [class*="_statusIndicator_"] {
+  border-color: var(--surface);
+  box-shadow: none;
+}
+.chat-layout.chat-layout [class*="_conversaCategory_"] {
+  border: 0;
+  background: var(--surface-3);
+  color: var(--ink-3);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.chat-layout.chat-layout :is(
+    [class*="_conversaOptionsMenu_"],
+    [class*="_moreMenu_"],
+    [class*="_headerMoreMenu_"]
+  ) {
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+}
+.chat-layout.chat-layout :is([class*="_moreMenuItem_"], [class*="_conversaOptionsItem_"]) {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.chat-layout.chat-layout :is([class*="_moreMenuItem_"], [class*="_conversaOptionsItem_"]):hover {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+.chat-layout.chat-layout [class*="_searchSectionHeader_"] {
+  color: var(--ink-4);
+  font-size: var(--fs-2xs);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Área de mensagens ---------- */
+.chat-layout.chat-layout [class*="_chatHeader_"] {
+  min-height: 64px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+  background-color: var(--user-panel-color, var(--surface));
+  box-shadow: none;
+}
+.chat-layout.chat-layout [class*="_chatHeaderTitle_"] {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.chat-layout.chat-layout [class*="_chatHeaderStatus_"] {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.chat-layout.chat-layout [class*="_chatHeader_"] [class*="_avatarImage_"],
+.chat-layout.chat-layout [class*="_chatHeader_"] [class*="_conversaAvatar_"] {
+  width: 40px;
+  height: 40px;
+}
+.chat-layout.chat-layout :is([class*="_iconButton_"], [class*="_headerMenuButton_"]) {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 15px;
+  transform: none;
+}
+.chat-layout.chat-layout :is([class*="_iconButton_"], [class*="_headerMenuButton_"]):hover {
+  background: var(--surface-3);
+  color: var(--ink);
+}
+.chat-layout.chat-layout [class*="_chatHeader_"] [class*="_searchBox_"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 4px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  color: var(--ink-4);
+}
+.chat-layout.chat-layout [class*="_chatHeader_"] [class*="_searchBox_"]:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.chat-layout.chat-layout [class*="_searchInput_"] {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+.chat-layout.chat-layout [class*="_chatViewTabs_"] {
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.chat-layout.chat-layout [class*="_chatViewTab_"] {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+.chat-layout.chat-layout [class*="_chatViewTab_"]:hover {
+  color: var(--ink);
+  background: var(--surface-3);
+}
+.chat-layout.chat-layout [class*="_chatViewTabActive_"] {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.chat-layout.chat-layout [class*="_messagesContainer_"] {
+  padding: 16px 22px;
+}
+.chat-layout.chat-layout [class*="_messageDateDivider_"] span {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-3);
+  box-shadow: var(--shadow-1);
+  font-size: var(--fs-2xs);
+  font-weight: 750;
+}
+.chat-layout.chat-layout [class*="_messageBubble_"] {
+  border-radius: var(--user-message-radius, 14px);
+  font-size: var(--user-font-size, 13.5px);
+  line-height: var(--user-line-height, 1.45);
+  padding: var(--user-bubble-padding-y, 8px) var(--user-bubble-padding-x, 12px);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"][class*="_sent_"] {
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --user-secondary-text-color: rgba(255, 255, 255, 0.72);
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 6px 18px -10px rgba(47, 107, 255, 0.8);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"][class*="_received_"] {
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-1);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"][class*="_sent_"] a {
+  color: #fff;
+  text-decoration: underline;
+}
+.chat-layout.chat-layout [class*="_messageTime_"] {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.chat-layout.chat-layout [class*="_messageReactionChip_"] {
+  border-color: var(--line);
+  background: var(--surface);
+}
+.chat-layout.chat-layout [class*="_messageReactionChipActive_"] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.chat-layout.chat-layout [class*="_newMessagesJump_"] {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 10px 26px -10px rgba(47, 107, 255, 0.9);
+}
+
+/* ---------- Compositor ---------- */
+.chat-layout.chat-layout [class*="_inputArea_"] {
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--line);
+  background-color: var(--user-panel-color, var(--surface));
+}
+.chat-layout.chat-layout [class*="_messageInput_"] {
+  min-height: 40px;
+  max-height: 140px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-sunken);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  transition:
+    border-color var(--dur-2),
+    box-shadow var(--dur-2);
+}
+.chat-layout.chat-layout [class*="_messageInput_"]:focus-within,
+.chat-layout.chat-layout [class*="_messageInput_"]:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.chat-layout.chat-layout [class*="_attachButton_"] {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  color: var(--ink-3);
+}
+.chat-layout.chat-layout [class*="_attachButton_"]:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--primary-text);
+}
+.chat-layout.chat-layout [class*="_sendButton_"] {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--user-accent-color, var(--primary));
+  color: #fff;
+  box-shadow: 0 8px 20px -10px rgba(47, 107, 255, 0.9);
+  transition:
+    transform var(--dur-1),
+    opacity var(--dur-2),
+    box-shadow var(--dur-2);
+}
+.chat-layout.chat-layout [class*="_sendButton_"]:hover:not(:disabled) {
+  transform: scale(1.04);
+  box-shadow: 0 10px 24px -8px rgba(58, 214, 255, 0.7);
+}
+.chat-layout.chat-layout [class*="_sendButton_"]:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+.chat-layout.chat-layout [class*="_cancelButton_"] {
+  height: 34px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-weight: 650;
+}
+.chat-layout.chat-layout [class*="_errorBanner_"] {
+  border-radius: var(--r-md);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+.chat-layout.chat-layout [class*="_emptyChat_"] {
+  color: var(--ink-3);
+}
+
+/* Modais do chat (perfil, imagens, favoritos, membros) */
+.chat-layout.chat-layout :is(
+    [class*="_profileModal_"],
+    [class*="_groupMembersModal_"],
+    [class*="_confirmRemoveModal_"],
+    [class*="_photoPreviewModal_"]
+  ) {
+  border: 0;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-pop);
+}
+.chat-layout.chat-layout [class*="_modalOverlay_"] {
+  background: var(--overlay);
+  backdrop-filter: blur(3px);
+}
+.chat-layout.chat-layout [class*="_primaryProfileButton_"] {
+  border-radius: var(--r-pill);
+  background: var(--primary);
+  color: #fff;
+}
+.chat-layout.chat-layout [class*="_secondaryProfileButton_"] {
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   Histórico de mensagens — refinamento visual (lista de conversas e fio).
+   Só tokens do Workspace; a personalização --user-* continua valendo.
+   ========================================================================== */
+
+/* ---------- Cabeçalho da lista ---------- */
+.chat-layout .chat-list-title h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+/* O ciano puro some sobre fundo claro: no tema claro o selo usa o azul da marca. */
+:root[data-theme="claro"] .chat-layout .chat-unread-chip {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.chat-layout .chat-unread-chip {
+  font-variant-numeric: tabular-nums;
+}
+.chat-layout .chat-list-footer {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Com a aba Disparo (só admin) são quatro abas em 320 px: sem folga a última era cortada. */
+.chat-layout .chat-list .segmented--fill button {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+/* ---------- Itens da lista ---------- */
+.chat-layout.chat-layout [class*="_conversaItem_"] {
+  margin: 2px 0;
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out);
+}
+/* Conversa aberta: fundo azul suave e contorno fino, sem barra colorada na lateral. */
+.chat-layout.chat-layout [class*="_conversaItem_"][class*="_active_"] {
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 32%, transparent);
+}
+.chat-layout.chat-layout [class*="_conversaItem_"][class*="_active_"]::before {
+  content: none;
+}
+.chat-layout.chat-layout [class*="_conversaItem_"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.chat-layout.chat-layout [class*="_conversaAvatar_"] {
+  letter-spacing: -0.01em;
+}
+.chat-layout.chat-layout [class*="_conversaNome_"] {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.chat-layout.chat-layout [class*="_conversaPreview_"],
+.chat-layout.chat-layout [class*="_ultimaMensagem_"] {
+  line-height: 1.35;
+}
+/* Não lida: o texto sobe de peso e de contraste, a hora ganha a cor da marca. */
+.chat-layout.chat-layout [class*="_temNaoLida_"] [class*="_conversaNome_"] {
+  font-weight: 700;
+}
+.chat-layout.chat-layout [class*="_temNaoLida_"] :is([class*="_conversaPreview_"], [class*="_ultimaMensagem_"]) {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.chat-layout.chat-layout [class*="_badgeNaoLido_"] {
+  padding: 0 6px;
+  background: var(--grad-electric);
+  color: var(--navy-900);
+  font-variant-numeric: tabular-nums;
+}
+:root[data-theme="claro"] .chat-layout.chat-layout [class*="_badgeNaoLido_"] {
+  background: var(--primary);
+  color: #fff;
+}
+:root[data-theme="claro"] .chat-layout.chat-layout [class*="_horaNaoLida_"] {
+  color: var(--primary-text);
+}
+
+/* ---------- Fio de mensagens ---------- */
+.chat-layout.chat-layout [class*="_messagesContainer_"] {
+  padding: 18px 26px;
+  scroll-behavior: smooth;
+}
+.chat-layout.chat-layout [class*="_messageDateDivider_"] span {
+  height: 26px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  background: var(--surface-2);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"] {
+  overflow-wrap: anywhere;
+}
+.chat-layout.chat-layout [class*="_messageBubble_"][class*="_received_"] {
+  box-shadow: 0 0 0 1px var(--line);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"] a {
+  text-underline-offset: 2px;
+}
+.chat-layout.chat-layout [class*="_messageBubble_"][class*="_received_"] a {
+  color: var(--primary-text);
+}
+.chat-layout.chat-layout [class*="_messageBubble_"] ::selection {
+  background: rgba(58, 214, 255, 0.35);
+}
+
+/* ---------- Detalhes do navegador ---------- */
+.chat-layout ::selection {
+  background: var(--primary-soft);
+}
+.chat-layout .chat-list-scroll,
+.chat-layout [class*="_messagesContainer_"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.chat-layout .chat-list-scroll::-webkit-scrollbar,
+.chat-layout [class*="_messagesContainer_"]::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-layout .chat-list-scroll::-webkit-scrollbar-thumb,
+.chat-layout [class*="_messagesContainer_"]::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  background-clip: content-box;
+}
+.chat-layout :is([class*="_iconButton_"], [class*="_headerMenuButton_"], [class*="_chatViewTab_"], [class*="_sendButton_"], [class*="_attachButton_"]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-layout [class*="_messagesContainer_"] {
+    scroll-behavior: auto;
+  }
+  .chat-layout.chat-layout [class*="_conversaItem_"],
+  .chat-layout.chat-layout [class*="_sendButton_"] {
+    transition: none;
+  }
+}

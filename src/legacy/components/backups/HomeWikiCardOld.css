@@ -1,0 +1,107 @@
+/* BACKUP VISUAL ANTIGO - WIKI INTERNA DA HOME OFICIAL */
+.chat-home-mini-card {
+  position: relative;
+  min-height: 120px;
+  display: grid;
+  grid-template-columns: 68px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 24px;
+  border: 1px solid rgba(80, 190, 255, 0.18);
+  border-radius: 20px;
+  overflow: hidden;
+  color: inherit;
+  background: linear-gradient(145deg, rgba(13, 30, 52, 0.72), rgba(5, 13, 26, 0.84));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.chat-home-mini-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(80, 190, 255, 0.36);
+  box-shadow:
+    0 26px 58px rgba(0, 0, 0, 0.34),
+    0 0 28px rgba(0, 174, 255, 0.1);
+}
+
+.chat-home-mini-icon {
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(80, 190, 255, 0.18);
+  border-radius: 50%;
+  color: #58c8ff;
+  background: radial-gradient(circle, rgba(0, 174, 255, 0.2), rgba(5, 13, 26, 0.94));
+  font-size: 28px;
+}
+
+.chat-home-mini-card strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #f4fbff;
+  font-size: 17px;
+}
+
+.chat-home-mini-card strong span {
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #58c8ff;
+  background: rgba(0, 174, 255, 0.1);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chat-home-mini-card p {
+  margin: 0;
+  color: #c5d5e5;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.chat-home-mini-arrow {
+  color: #58c8ff;
+  font-size: 22px;
+  opacity: 0.72;
+  transform: translateX(-4px);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.chat-home-mini-card:hover .chat-home-mini-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.chat-home-mini-card-wiki {
+  border-color: rgba(80, 190, 255, 0.2);
+}
+
+.chat-home-mini-card-wiki:hover {
+  border-color: rgba(80, 190, 255, 0.42);
+}
+
+.chat-home-wiki-bg {
+  position: absolute;
+  right: 28px;
+  bottom: -20px;
+  color: rgba(88, 200, 255, 0.07);
+  font-size: 124px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 780px) {
+  .chat-home-mini-card {
+    grid-template-columns: 54px 1fr;
+  }
+
+  .chat-home-mini-arrow {
+    display: none;
+  }
+}

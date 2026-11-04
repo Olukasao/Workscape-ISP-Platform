@@ -1,0 +1,193 @@
+/* ==========================================================================
+   AcessaNet Workspace — tokens
+   Paleta e tipografia do AcessaNetLab (src/styles/tokens.css do lab):
+   navy profundo, azul elétrico, ciano de sinal, Sora nos títulos e Manrope
+   no texto. As três trilhas do logo (azul, verde, amarelo) viram a paleta
+   semântica: agendado/info, concluído/ok, atenção.
+   ========================================================================== */
+
+:root {
+  /* Marca */
+  --navy-950: #030716;
+  --navy-900: #050b1f;
+  --navy-850: #081129;
+  --navy-800: #0a1633;
+  --navy-700: #10224a;
+  --navy-600: #1a3266;
+  --blue-600: #1f56e0;
+  --blue-500: #2f6bff;
+  --blue-400: #4f86ff;
+  --blue-300: #8fb2ff;
+  --cyan-400: #3ad6ff;
+  --cyan-300: #8ae8ff;
+  --fiber-green: #17b26a;
+  --fiber-yellow: #f5a524;
+  --signal-red: #e5484d;
+  --grad-electric: linear-gradient(135deg, #2f6bff 0%, #3ad6ff 100%);
+
+  /* Tipografia */
+  --font-display: "Sora Variable", "Sora", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope Variable", "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --fs-2xs: 10.5px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-lg: 15px;
+  --fs-xl: 18px;
+  --fs-2xl: 22px;
+  --fs-3xl: 28px;
+  --fs-4xl: 34px;
+
+  /* Espaço (base 4) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Raio: hierarquia, não um valor único */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* Movimento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+
+  /* Estrutura */
+  --titlebar-h: 34px;
+  --topbar-h: 56px;
+  --rail-w: 244px;
+  --rail-w-collapsed: 68px;
+
+  /* Rail lateral: navy em ambos os temas, como o admin do lab */
+  --rail-bg: linear-gradient(180deg, #060d24 0%, var(--navy-950) 100%);
+  --rail-line: rgba(143, 178, 255, 0.1);
+  --rail-text: rgba(226, 235, 255, 0.66);
+  --rail-text-strong: #eef3ff;
+  --rail-hover: rgba(143, 178, 255, 0.07);
+  --rail-active: rgba(47, 107, 255, 0.16);
+}
+
+/* ---------- Tema escuro (padrão) ----------
+   Também vale para módulos da intranet que só existem na versão escura
+   (data-theme-support="dark"), mesmo com o workspace no tema claro. */
+:root,
+:root[data-theme="escuro"],
+:root[data-theme="claro"] .legacy-module[data-theme-support="dark"] {
+  color-scheme: dark;
+  --canvas: #060c20;
+  --canvas-glow: radial-gradient(70% 520px at 100% -120px, rgba(47, 107, 255, 0.1), transparent 70%);
+  --surface: #0b1430;
+  --surface-2: #0e1938;
+  --surface-3: #13204a;
+  --surface-sunken: #070f26;
+  --overlay: rgba(2, 5, 16, 0.66);
+  --line: rgba(143, 178, 255, 0.11);
+  --line-strong: rgba(143, 178, 255, 0.2);
+  --ink: #eef3ff;
+  --ink-2: rgba(226, 235, 255, 0.76);
+  --ink-3: rgba(226, 235, 255, 0.52);
+  --ink-4: rgba(226, 235, 255, 0.34);
+  --primary: var(--blue-500);
+  --primary-hover: var(--blue-400);
+  --primary-ink: #ffffff;
+  --primary-soft: rgba(47, 107, 255, 0.16);
+  --primary-text: var(--blue-300);
+  --live: var(--cyan-400);
+  --ok: #2fcf86;
+  --ok-soft: rgba(23, 178, 106, 0.15);
+  --warn: #ffbd4a;
+  --warn-soft: rgba(245, 165, 36, 0.14);
+  --crit: #ff6b70;
+  --crit-soft: rgba(229, 72, 77, 0.15);
+  --info: var(--blue-300);
+  --info-soft: rgba(47, 107, 255, 0.15);
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 18px 50px -18px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--line);
+  --shadow-pop: 0 24px 70px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--line-strong);
+  --focus: 0 0 0 2px var(--canvas), 0 0 0 4px var(--cyan-400);
+  --skeleton-a: rgba(143, 178, 255, 0.06);
+  --skeleton-b: rgba(143, 178, 255, 0.13);
+  --scrollbar: rgba(143, 178, 255, 0.2);
+}
+
+/* ---------- Tema claro ---------- */
+:root[data-theme="claro"] {
+  color-scheme: light;
+  --canvas: #f4f7fc;
+  --canvas-glow: radial-gradient(60% 420px at 100% -60px, rgba(47, 107, 255, 0.08), transparent 70%);
+  --surface: #ffffff;
+  --surface-2: #f7f9fd;
+  --surface-3: #eaf0fa;
+  --surface-sunken: #eef2f9;
+  --overlay: rgba(5, 11, 31, 0.42);
+  --line: #e3e9f3;
+  --line-strong: #cfd9ea;
+  --ink: #0b1630;
+  --ink-2: #33415c;
+  --ink-3: #5d6b85;
+  --ink-4: #8a96ad;
+  --primary: var(--blue-500);
+  --primary-hover: var(--blue-600);
+  --primary-ink: #ffffff;
+  --primary-soft: rgba(47, 107, 255, 0.1);
+  --primary-text: var(--blue-600);
+  --live: #0aa5d1;
+  --ok: #0f9f5c;
+  --ok-soft: rgba(23, 178, 106, 0.12);
+  --warn: #b7700a;
+  --warn-soft: rgba(245, 165, 36, 0.16);
+  --crit: #d23a40;
+  --crit-soft: rgba(229, 72, 77, 0.1);
+  --info: var(--blue-600);
+  --info-soft: rgba(47, 107, 255, 0.1);
+  --shadow-1: 0 1px 2px rgba(11, 22, 48, 0.05), 0 2px 8px rgba(11, 22, 48, 0.04);
+  --shadow-2: 0 2px 6px rgba(11, 22, 48, 0.06), 0 18px 48px -12px rgba(11, 22, 48, 0.18);
+  --shadow-pop: 0 2px 6px rgba(11, 22, 48, 0.08), 0 28px 64px -16px rgba(11, 22, 48, 0.3);
+  --focus: 0 0 0 2px var(--canvas), 0 0 0 4px var(--blue-500);
+  --skeleton-a: #e9eef7;
+  --skeleton-b: #f5f8fd;
+  --scrollbar: rgba(11, 22, 48, 0.18);
+}
+
+/* ---------- Ponte para variáveis antigas ----------
+   Os módulos legados (intranet e chat) leem estas variáveis; apontá-las
+   para os tokens faz as telas antigas herdarem a nova identidade. */
+:root,
+:root[data-theme],
+:root[data-theme="claro"] .legacy-module[data-theme-support="dark"] {
+  --ws-bg: var(--canvas);
+  --ws-panel: var(--surface);
+  --ws-sidebar: var(--navy-900);
+  --ws-hover: var(--surface-3);
+  --ws-border: var(--line);
+  --ws-text: var(--ink);
+  --ws-muted: var(--ink-3);
+  --ws-accent: var(--primary);
+  --ws-input: var(--surface-sunken);
+
+  --bg-main: var(--canvas);
+  --bg-panel: var(--surface);
+  --bg-card: var(--surface);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-3);
+  --border-soft: var(--line);
+  --border-color: var(--line);
+  --border: var(--line);
+  --accent: var(--primary);
+  --accent-strong: var(--blue-600);
+  --accent-hover: var(--primary-hover);
+  --danger: var(--crit);
+  --success: var(--ok);
+}
