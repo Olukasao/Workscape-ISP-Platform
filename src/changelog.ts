@@ -12,6 +12,7 @@ export const changelog: ChangelogEntry[] = [
     data: "2026-11-05",
     itens: [
       "Corrigido: bloqueios e outras ações da agenda podiam sair como \"Usuário não identificado\" quando a sessão vencia com o app aberto. Agora a sessão é renovada antes de vencer.",
+      "O Workspace do Pedro ganhou uma imagem de fundo personalizada.",
     ],
   },
   {
