@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { useSession, useServers } from "../stores/workspace";
+import { tokenAindaValido } from "./agendaWebSessao";
 import { serviceEndpoint } from "./live";
 import type { serviceNames } from "../../electron/policy";
 type Service = (typeof serviceNames)[number];
@@ -49,7 +50,7 @@ export async function agendaSessionToken(): Promise<string> {
   const chatToken = useSession.getState().token;
   if (!chatToken) throw new Error("Entre com sua conta do Chat Interno para alterar a agenda.");
   const cached = agendaSessionCache;
-  if (cached && cached.chatToken === chatToken && Date.now() - cached.at < 6 * 3600_000) return cached.token;
+  if (cached && cached.chatToken === chatToken && Date.now() - cached.at < 6 * 3600_000 && tokenAindaValido(cached.token)) return cached.token;
   const { data } = await clients.chat.post("/integrations/agenda/session");
   if (typeof data?.sessaoToken !== "string" || !data.sessaoToken)
     throw new Error("Não foi possível identificar seu usuário na agenda. Entre novamente no Chat Interno.");

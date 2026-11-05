@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.101",
+    data: "2026-11-05",
+    itens: [
+      "Corrigido: bloqueios e outras ações da agenda podiam sair como \"Usuário não identificado\" quando a sessão vencia com o app aberto. Agora a sessão é renovada antes de vencer.",
+    ],
+  },
+  {
     versao: "0.5.100",
     data: "2026-10-31",
     itens: [

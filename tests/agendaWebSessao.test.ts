@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { criarRenovador } from "../src/services/agendaWebSessao";
+import { criarRenovador, tokenAindaValido, vencimentoDoToken } from "../src/services/agendaWebSessao";
 
 describe("renovador da sessão da agenda", () => {
   it("pede o token, entrega à página e avisa o sucesso", async () => {
@@ -39,5 +39,19 @@ describe("renovador da sessão da agenda", () => {
     await Promise.all([a, b]);
     await renovar();
     expect(obterToken).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("validade do token da agenda", () => {
+  const tk = (exp: number) => `agenda.${btoa(JSON.stringify({ id: 1, exp })).replace(/=/g, "")}.sig`;
+  const agora = Date.parse("2026-11-05T13:00:00Z");
+  it("lê o vencimento", () => expect(vencimentoDoToken(tk(1000))).toBe(1_000_000));
+  it("recusa token vencido ou perto de vencer", () => {
+    expect(tokenAindaValido(tk(agora / 1000 - 10), agora)).toBe(false);
+    expect(tokenAindaValido(tk(agora / 1000 + 60), agora)).toBe(false);
+  });
+  it("aceita token com folga e o que não dá para ler", () => {
+    expect(tokenAindaValido(tk(agora / 1000 + 86400), agora)).toBe(true);
+    expect(tokenAindaValido("agenda.xx", agora)).toBe(true);
   });
 });

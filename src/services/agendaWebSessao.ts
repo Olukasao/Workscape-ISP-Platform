@@ -33,3 +33,22 @@ export function criarRenovador({ obterToken, entregar, aoSucesso, aoFalhar }: Op
     return emAndamento;
   };
 }
+
+/** Instante (ms) em que o token da agenda (`agenda.<corpo>.<assinatura>`) vence, ou null se não der para ler. */
+export function vencimentoDoToken(token: string): number | null {
+  try {
+    const corpo = token.split(".")[1];
+    if (!corpo) return null;
+    const json = atob(corpo.replace(/-/g, "+").replace(/_/g, "/"));
+    const exp = Number(JSON.parse(json)?.exp);
+    return Number.isFinite(exp) && exp > 0 ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** O token em cache só serve se ainda faltar margem para vencer; antes o cache de 6 h reentregava token já vencido. */
+export function tokenAindaValido(token: string, agora = Date.now(), margemMs = 5 * 60 * 1000): boolean {
+  const venc = vencimentoDoToken(token);
+  return venc === null || venc - agora > margemMs;
+}
