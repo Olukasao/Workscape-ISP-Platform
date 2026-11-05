@@ -97,6 +97,7 @@ const Dashboard = lazy(() => import("../modules/Dashboard"));
 const Chat = lazy(() => import("../modules/Chat"));
 const Navegador = lazy(() => import("../modules/Navegador"));
 const RedeOlt = lazy(() => import("../modules/RedeOlt"));
+import InternalNoticeManager from "../legacy/components/InternalNoticeManager";
 const TerminalSsh = lazy(() => import("../modules/Terminal"));
 const Workspaces = lazy(() => import("../modules/Workspaces"));
 const Assistente = lazy(() => import("../modules/Assistente"));
@@ -104,6 +105,12 @@ const Tools = lazy(() => import("../modules/Tools"));
 const query = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
 });
+/** Avisos internos obrigatórios: valem em qualquer tela do Workspace, mesmo sem ter aberto o Chat. */
+function AvisosInternos() {
+  const token = useSession((s) => s.token);
+  const clear = useSession((s) => s.clear);
+  return token ? <InternalNoticeManager token={token} onUnauthorized={clear} /> : null;
+}
 /** Transição curta ao trocar de módulo, sem remontar componentes. */
 function useRouteTransition(path: string) {
   useEffect(() => {
@@ -310,6 +317,7 @@ function Shell() {
       <TelefoneFlutuante />
       <AlarmeLembretes />
       <ConviteTourIA />
+      <AvisosInternos />
       <TourGuiado />
       <div
         className={`workspace ${sidebarCollapsed ? "collapsed" : ""} ${autoRail ? "auto-recolher" : ""} ${chegada ? "is-chegada" : ""}`}

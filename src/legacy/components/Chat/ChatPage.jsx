@@ -68,7 +68,6 @@ import CcnaCompetitionHighlightCard from '../CcnaCompetitionHighlightCard';
 import PricingCalculator from '../PricingCalculator';
 import SemiDedicadoCalculator from '../SemiDedicadoCalculator';
 import PlanChangeCalculator from '../PlanChangeCalculator';
-import InternalNoticeManager from '../InternalNoticeManager';
 import { normalizeHomeBannerContent } from '../../utils/homeBanner';
 import { useTelefone } from '../../../stores/telefone';
 
@@ -3620,7 +3619,7 @@ export default function ChatPage({ internalPage = null, hideDashboardSidebar = f
           />
         )}
 
-        <InternalNoticeManager token={token} onUnauthorized={encerrarSessaoExpirada} />
+        {/* Os avisos internos são exibidos pelo App (qualquer tela), não só ao abrir o chat. */}
 
         {imagemPerfilParaEditar && (
           <ImageCropModal

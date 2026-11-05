@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.105",
+    data: "2026-11-05",
+    itens: [
+      "Corrigido: os avisos internos agora aparecem em qualquer tela do Workspace, sem precisar abrir o Chat antes.",
+    ],
+  },
+  {
     versao: "0.5.104",
     data: "2026-11-05",
     itens: [
