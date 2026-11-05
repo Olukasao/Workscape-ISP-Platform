@@ -89,6 +89,7 @@ declare global {
       onNavigate(callback: (path: string) => void): () => void;
       sgpListarChamados(key: SgpReportKey): Promise<SgpChamadosResultado>;
       openSgpLink(url: string): Promise<void>;
+      browserOpenSgp(url: string): Promise<void>;
       testarConexao?(): Promise<{
         linhas: { servico: string; host: string; porta: number; ok: boolean; ms: number; erro?: string }[];
         rede: string | null;

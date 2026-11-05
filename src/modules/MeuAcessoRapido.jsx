@@ -8,6 +8,7 @@ import { useTelefone } from "../stores/telefone";
 import { resolveModuleTarget } from "../../electron/moduleNavigation";
 import { Button } from "../components/ui/button";
 import { EmptyState, Skeleton } from "../components/ui/primitives";
+import { abrirSgpNoWorkspace } from "../services/navegadorInterno";
 
 const CALCULATOR_MENU_ID = "calculadoras-intranet";
 const CALCULATOR_IDS = [
@@ -214,7 +215,9 @@ export default function MeuAcessoRapido() {
       // https://acessanet.sgp.net.br. Os demais links externos continuam sendo copiados.
       if (isSgpLink(target) && window.desktop?.openSgpLink) {
         try {
-          await window.desktop.openSgpLink(target);
+          // O pré-cadastro abre dentro do Workspace (Navegador > SGP); os demais links do SGP seguem no navegador do computador.
+          if (/^https:\/\/acessanet\.sgp\.net\.br\/public\/precadastro\//i.test(target)) await abrirSgpNoWorkspace(target, navigate);
+          else await window.desktop.openSgpLink(target);
         } catch {
           notify(`Não foi possível abrir ${item.label}.`);
         }

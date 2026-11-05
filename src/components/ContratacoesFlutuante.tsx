@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { abrirSgpNoWorkspace } from "../services/navegadorInterno";
 import { ClipboardCheck } from "lucide-react";
 import { useContratacoes, descreverPedido, type Contratacao } from "../services/contratacoes";
 import LixeiraDeArraste, { sobreLixeira } from "./LixeiraDeArraste";
@@ -223,7 +224,7 @@ export default function ContratacoesFlutuante() {
                   role="menuitem"
                   onClick={() => {
                     setPrecadastroAberto(false);
-                    void window.desktop?.openSgpLink(opcao.url);
+                    void abrirSgpNoWorkspace(opcao.url, navigate);
                   }}
                 >
                   {opcao.rotulo}

@@ -275,6 +275,13 @@ export function browserAction(
     void wc.loadURL(target).catch(() => undefined);
   }
 }
+/** Aponta um site do Navegador para um endereço: carrega agora se a página já está aberta, ou na próxima vez que for mostrada. */
+export function browserOpenUrl(site: BrowserSite, url: string) {
+  const e = entry(site);
+  e.lastUrl = url;
+  const wc = e.view?.webContents;
+  if (wc && !wc.isDestroyed()) void wc.loadURL(url).catch(() => undefined);
+}
 export function closeBrowserTabs() {
   if (sweeper) clearInterval(sweeper);
   for (const site of [...entries.keys()]) unload(site);

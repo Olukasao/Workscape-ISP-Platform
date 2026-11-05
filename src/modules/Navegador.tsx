@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Globe, Home, RefreshCw, Network, Sparkles, Router, Activity, ChartLine, ZoomIn, ZoomOut, ExternalLink, PanelTopClose } from "lucide-react";
 import { clsx } from "clsx";
 import type { BrowserSite, BrowserState } from "../../electron/browserTabs";
+import { EVENTO_SITE_NAVEGADOR } from "../services/navegadorInterno";
 import { JANELA_DESTACADA, destacar, reintegrar, podeDestacar } from "../services/janelaDestacada";
 
 // Os rótulos ficam aqui só para exibir; endereços e regras ficam no processo principal.
@@ -24,6 +25,12 @@ export default function Navegador({ active, paused }: { active: boolean; paused:
   const [states, setStates] = useState<Partial<Record<BrowserSite, BrowserState>>>({});
   const [draft, setDraft] = useState<string | null>(null);
   const area = useRef<HTMLDivElement>(null);
+  // Atalhos de outros módulos (ex.: Pré-cadastro) pedem para mostrar um site específico.
+  useEffect(() => {
+    const trocar = (e: Event) => { setSite((e as CustomEvent<BrowserSite>).detail); setDraft(null); };
+    window.addEventListener(EVENTO_SITE_NAVEGADOR, trocar);
+    return () => window.removeEventListener(EVENTO_SITE_NAVEGADOR, trocar);
+  }, []);
   const state = states[site];
   const visible = active && !paused;
 

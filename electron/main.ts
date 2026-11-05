@@ -39,7 +39,7 @@ import { isPinnedAgendaCertificate } from "./agendaTrust";
 import { isPinnedUpdateCertificate } from "./updateTrust";
 import { showToast, initToasts, closeAllToasts } from "./toast";
 import { initDetachedWindows, openDetached, closeDetached, setDetachedOnTop, setDetachedCompact, captureDetachedLayout, closeAllDetached, detachedKindOf, detachedKinds, isDetachedOpen, type DetachedKind } from "./detachedWindows";
-import { initBrowserTabs, showBrowser, updateBrowserBounds, hideBrowser, moveBrowserTabs, browserAction, closeBrowserTabs, resetBrowserTabs, setAgendaWebSession, browserSites } from "./browserTabs";
+import { initBrowserTabs, showBrowser, updateBrowserBounds, hideBrowser, moveBrowserTabs, browserAction, browserOpenUrl, closeBrowserTabs, resetBrowserTabs, setAgendaWebSession, browserSites } from "./browserTabs";
 import { deleteWorkspace, findWorkspace, listWorkspaces, saveWorkspace, tileLayout, workspaceItemSchema } from "./workspaces";
 import { attachContextMenu, configureSpellChecker } from "./contextMenu";
 import { startUpdates, consumeSilentRelaunch } from "./updates";
@@ -706,6 +706,13 @@ async function bootstrap() {
   handle("agenda-web:session", async (payload) => {
     const v = z.object({ token: z.string().max(4096) }).strict().parse(payload);
     await setAgendaWebSession(v.token);
+  });
+  // Abre uma página do SGP dentro do Navegador do Workspace (aba SGP), em vez do navegador do computador.
+  handle("browser:open-sgp", (payload) => {
+    const url = new URL(z.string().url().max(2048).parse(payload));
+    if (url.hostname !== "acessanet.sgp.net.br" || url.protocol !== "https:" || url.username || url.password)
+      throw new Error("Link fora do domínio do SGP.");
+    browserOpenUrl("sgp", url.href);
   });
   handle("browser:action", (payload) => {
     const v = z.object({ site: siteSchema, action: z.enum(["back", "forward", "reload", "home", "go", "zoomIn", "zoomOut", "zoomReset"]), value: z.string().max(2048).optional() }).strict().parse(payload);

@@ -77,6 +77,7 @@ contextBridge.exposeInMainWorld("desktop", {
     return () => ipcRenderer.removeListener("navigate", listener);
   },
   sgpListarChamados: (key: string) => ipcRenderer.invoke("sgp:listar-chamados", key),
+  browserOpenSgp: (url: string) => ipcRenderer.invoke("browser:open-sgp", url),
   openSgpLink: (url: string) => ipcRenderer.invoke("external:open-sgp-link", url),
   testarConexao: () => ipcRenderer.invoke("vpn:testar"),
   corrigirVpn: () => ipcRenderer.invoke("vpn:corrigir"),

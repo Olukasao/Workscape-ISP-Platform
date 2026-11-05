@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { abrirSgpNoWorkspace } from "../services/navegadorInterno";
 import { ArrowUpRight, Search, Shield, Wrench, X } from "lucide-react";
 import {
   toolItems,
@@ -26,6 +27,7 @@ const normalize = (s) =>
     .replace(/[̀-ͯ]/g, "");
 
 function ToolIndex() {
+  const navigate = useNavigate();
   const { access, tools } = usePermittedTools();
   const [filter, setFilter] = useState("");
   const abrirTelefone = useTelefone((s) => s.abrir);
@@ -145,7 +147,7 @@ function ToolIndex() {
                                 className="chat-home-agenda-option"
                                 onClick={() => {
                                   setMenuAberto(null);
-                                  void window.desktop?.openSgpLink(opcao.url);
+                                  void abrirSgpNoWorkspace(opcao.url, navigate);
                                 }}
                               >
                                 <opcao.icon size={15} />
