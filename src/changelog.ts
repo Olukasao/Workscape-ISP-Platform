@@ -12,6 +12,7 @@ export const changelog: ChangelogEntry[] = [
     data: "2026-11-05",
     itens: [
       "Corrigido: os avisos internos agora aparecem em qualquer tela do Workspace, sem precisar abrir o Chat antes.",
+      "Os avisos internos ficaram mais compactos: aparecem no meio da tela, num popup no mesmo estilo do aviso de atualização.",
     ],
   },
   {
