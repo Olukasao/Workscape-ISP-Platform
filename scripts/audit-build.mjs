@@ -1,7 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 const forbidden = [
-  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
+  // Exige o corpo da chave depois do cabeçalho: bibliotecas como o ssh2 citam só o texto do cabeçalho ao ler chaves.
+  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\s*[A-Za-z0-9+\/=\r\n]{60,}/,
   /\b(?:DB_PASSWORD|MYSQL_PASSWORD|MARIADB_PASSWORD|SGP_PASSWORD)\s*[:=]\s*['"][^'"]+['"]/i,
   /(?:AKIA|ASIA)[A-Z0-9]{16}/,
   /gh[pousr]_[A-Za-z0-9]{30,}/,
