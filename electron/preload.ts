@@ -102,6 +102,24 @@ contextBridge.exposeInMainWorld("desktop", {
     ipcRenderer.on("phone:event", listener);
     return () => ipcRenderer.removeListener("phone:event", listener);
   },
+  terminalListar: (dono: string) => ipcRenderer.invoke("terminal:listar", dono),
+  terminalSalvar: (value: unknown) => ipcRenderer.invoke("terminal:salvar", value),
+  terminalExcluir: (value: unknown) => ipcRenderer.invoke("terminal:excluir", value),
+  terminalEsquecerChave: (value: unknown) => ipcRenderer.invoke("terminal:esquecer-chave", value),
+  terminalConectar: (value: unknown) => ipcRenderer.invoke("terminal:conectar", value),
+  terminalEntrada: (value: unknown) => ipcRenderer.invoke("terminal:entrada", value),
+  terminalTamanho: (value: unknown) => ipcRenderer.invoke("terminal:tamanho", value),
+  terminalFechar: (value: unknown) => ipcRenderer.invoke("terminal:fechar", value),
+  onTerminalDados: (callback: (value: unknown) => void) => {
+    const listener = (_event: unknown, value: unknown) => callback(value);
+    ipcRenderer.on("terminal:dados", listener);
+    return () => ipcRenderer.removeListener("terminal:dados", listener);
+  },
+  onTerminalEstado: (callback: (value: unknown) => void) => {
+    const listener = (_event: unknown, value: unknown) => callback(value);
+    ipcRenderer.on("terminal:estado", listener);
+    return () => ipcRenderer.removeListener("terminal:estado", listener);
+  },
   localAiStatus: () => ipcRenderer.invoke("localai:status"),
   localAiComplete: (value: unknown) => ipcRenderer.invoke("localai:complete", value),
   localAiChat: (value: unknown) => ipcRenderer.invoke("localai:chat", value),

@@ -82,7 +82,7 @@ import { useSobreposicao } from "../services/sobreposicao";
 import { JANELA_DESTACADA, MINIAPPS, useDestacada, useSincronizacaoAgenda, useSincronizacaoGeral, usePresencaChat, destacar, reintegrar, trazerDeVolta, fixarSobre, type JanelaKind } from "../services/janelaDestacada";
 import ModuleLinkBoundary from "../components/ModuleLinkBoundary";
 import { Titlebar } from "./shell/Titlebar";
-import { ExternalLink, PanelTopOpen, PanelTopClose, Pin, PinOff, Maximize2, Minimize2 } from "lucide-react";
+import { SquareTerminal, ExternalLink, PanelTopOpen, PanelTopClose, Pin, PinOff, Maximize2, Minimize2 } from "lucide-react";
 import { Sidebar, type NavEntry, type NavGroup } from "./shell/Sidebar";
 import { Topbar } from "./shell/Topbar";
 import { CommandPalette } from "./shell/CommandPalette";
@@ -97,6 +97,7 @@ const Dashboard = lazy(() => import("../modules/Dashboard"));
 const Chat = lazy(() => import("../modules/Chat"));
 const Navegador = lazy(() => import("../modules/Navegador"));
 const RedeOlt = lazy(() => import("../modules/RedeOlt"));
+const TerminalSsh = lazy(() => import("../modules/Terminal"));
 const Workspaces = lazy(() => import("../modules/Workspaces"));
 const Assistente = lazy(() => import("../modules/Assistente"));
 const Tools = lazy(() => import("../modules/Tools"));
@@ -267,6 +268,7 @@ function Shell() {
           ? [{ path: "/rede", label: "Rede (OLT)", icon: RadioTower, badge: redeVisiveis.length }]
           : []),
         { path: "/tools", label: "Ferramentas", icon: Wrench },
+        ...(window.desktop ? [{ path: "/terminal", label: "Terminal", icon: SquareTerminal }] : []),
         { path: "/navegador", label: "Navegador", icon: Globe },
       ],
     },
@@ -388,6 +390,7 @@ function Shell() {
                     <Route path="/contratacoes" element={<Contratacoes />} />
                     <Route path="/workspaces" element={<Workspaces />} />
                     <Route path="/assistente" element={<Assistente />} />
+                    <Route path="/terminal" element={<TerminalSsh active />} />
                     <Route path="/rede" element={redeDestacada ? <JanelaEmOutraTela kind="rede" /> : <RedeOlt />} />
                     <Route path="/dashboard" element={dashboardDestacado ? <JanelaEmOutraTela kind="dashboard" /> : <Dashboard />} />
                     <Route

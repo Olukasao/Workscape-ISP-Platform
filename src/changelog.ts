@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.103",
+    data: "2026-11-05",
+    itens: [
+      "Novo: Terminal dentro do Workspace (em Operação), no estilo SecureCRT. Conecte por SSH ou Telnet, com abas, lista de equipamentos por pasta e conexão rápida.",
+      "As senhas dos equipamentos ficam guardadas só no seu computador, cifradas pelo Windows, ou são pedidas a cada conexão.",
+    ],
+  },
+  {
     versao: "0.5.102",
     data: "2026-11-05",
     itens: [

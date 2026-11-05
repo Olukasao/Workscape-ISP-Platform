@@ -47,6 +47,7 @@ import { createDashboardFeed } from "./dashboardFeed";
 import { LocalAi, type LocalAiTask } from "./localAi";
 import { deviceInfo } from "./deviceInfo";
 import { createPhone } from "./phone";
+import { ServicoTerminal } from "./terminal";
 import { nomeParaSalvar } from "./nomeArquivo";
 import { conflitoDeRede, corrigirRotaVpn, listarVpns, redeDe, testarPorta, type LinhaTeste } from "./vpn";
 import { updateOrigin } from "./updateDeployment";
@@ -369,6 +370,27 @@ async function bootstrap() {
   handle("phone:set-devices", (payload) => phoneCall(() => phone.definirDispositivos(payload)));
   handle("phone:diagnostico", () => ({ motor: phoneEnginePath ? path.basename(phoneEnginePath) : null, log: phone.stderrTail() }));
   app.on("before-quit", () => { void phone.parar(); });
+  // Terminal SSH/Telnet: a conexão fica aqui; a interface só recebe os bytes e nunca vê senhas salvas.
+  const terminal = new ServicoTerminal(
+    (dono) => path.join(app.getPath("userData"), `terminal-equipamentos-${dono.replace(/[^A-Za-z0-9_-]/g, "_")}.json`),
+    path.join(app.getPath("userData"), "terminal-chaves.json"),
+    {
+      disponivel: encryptionAvailable,
+      cifrar: (t) => safeStorage.encryptString(t).toString("base64"),
+      decifrar: (b) => safeStorage.decryptString(Buffer.from(b, "base64")),
+    },
+    (canal, payload) => { if (!win.isDestroyed()) win.webContents.send(canal, payload); },
+  );
+  const donoTerminal = z.string().min(1).max(64);
+  handle("terminal:listar", (p) => terminal.listar(donoTerminal.parse(p)));
+  handle("terminal:salvar", (p) => { const v = z.object({ dono: donoTerminal, equipamento: z.unknown() }).strict().parse(p); return terminal.salvar(v.dono, v.equipamento); });
+  handle("terminal:excluir", (p) => { const v = z.object({ dono: donoTerminal, id: z.string().max(64) }).strict().parse(p); return terminal.excluir(v.dono, v.id); });
+  handle("terminal:esquecer-chave", (p) => { const v = z.object({ host: z.string().max(253), porta: z.number().int().min(1).max(65535) }).strict().parse(p); return terminal.esquecerChave(v.host, v.porta); });
+  handle("terminal:conectar", (p) => { const v = z.object({ dono: donoTerminal, conexao: z.unknown() }).strict().parse(p); return terminal.conectar(v.dono, v.conexao); });
+  handle("terminal:entrada", (p) => { const v = z.object({ sessao: z.string().max(64), dados: z.string().max(65536) }).strict().parse(p); terminal.entrada(v.sessao, v.dados); });
+  handle("terminal:tamanho", (p) => { const v = z.object({ sessao: z.string().max(64), cols: z.number().int().min(10).max(500), rows: z.number().int().min(2).max(200) }).strict().parse(p); terminal.tamanho(v.sessao, v.cols, v.rows); });
+  handle("terminal:fechar", (p) => { terminal.fechar(z.object({ sessao: z.string().max(64) }).strict().parse(p).sessao); });
+  app.on("before-quit", () => terminal.fecharTodas());
   // Diagnóstico de conexão (útil pela VPN): testa a porta de cada servidor e confere a VPN do Windows.
   const alvos = () => [
     ["Chat, IA e lembretes", config.chat], ["Agenda técnica", config.agenda], ["Dashboard", config.dashboard], ["Atualizações do app", updateOrigin],

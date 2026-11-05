@@ -8,4 +8,5 @@ await build({
   format: "cjs",
   target: "node22",
   external: ["electron"],
+  loader: { ".node": "empty" },
 });

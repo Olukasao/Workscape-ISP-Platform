@@ -68,6 +68,16 @@ declare global {
       detachedStatus(kind: DetachedKind): Promise<{ open: boolean }>;
       onDetachedState(callback: (value: { kind: DetachedKind; open: boolean }) => void): () => void;
       onDetachedDeeplink(callback: (search: string) => void): () => void;
+      terminalListar(dono: string): Promise<import("../services/terminal").EquipamentoTerminal[]>;
+      terminalSalvar(value: { dono: string; equipamento: import("../services/terminal").EquipamentoForm }): Promise<import("../services/terminal").EquipamentoTerminal>;
+      terminalExcluir(value: { dono: string; id: string }): Promise<void>;
+      terminalEsquecerChave(value: { host: string; porta: number }): Promise<void>;
+      terminalConectar(value: { dono: string; conexao: import("../services/terminal").PedidoConexao }): Promise<void>;
+      terminalEntrada(value: { sessao: string; dados: string }): Promise<void>;
+      terminalTamanho(value: { sessao: string; cols: number; rows: number }): Promise<void>;
+      terminalFechar(value: { sessao: string }): Promise<void>;
+      onTerminalDados(callback: (value: { sessao: string; dados: Uint8Array }) => void): () => void;
+      onTerminalEstado(callback: (value: { sessao: string; estado: "conectando" | "conectado" | "fechado" | "erro"; mensagem?: string }) => void): () => void;
       unread(value: number): Promise<void>;
       openExternal(key: "painel-contratacoes" | SgpReportKey): Promise<void>;
       copyText(text: string): Promise<boolean>;
