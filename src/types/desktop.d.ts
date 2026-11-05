@@ -75,6 +75,7 @@ declare global {
       terminalConectar(value: { dono: string; conexao: import("../services/terminal").PedidoConexao }): Promise<void>;
       terminalEntrada(value: { sessao: string; dados: string }): Promise<void>;
       terminalTamanho(value: { sessao: string; cols: number; rows: number }): Promise<void>;
+      terminalAntiIdle(value: { sessao: string; config: import("../services/terminal").AntiIdle }): Promise<void>;
       terminalFechar(value: { sessao: string }): Promise<void>;
       onTerminalDados(callback: (value: { sessao: string; dados: Uint8Array }) => void): () => void;
       onTerminalEstado(callback: (value: { sessao: string; estado: "conectando" | "conectado" | "fechado" | "erro"; mensagem?: string }) => void): () => void;

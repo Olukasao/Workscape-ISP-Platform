@@ -58,6 +58,11 @@ export const usePreferences = create(
     setThemeAuto: (value: boolean) => void;
     setAccent: (hex: string) => void;
     setDarkBackground: (value: "marinho" | "grafite" | "preto") => void;
+    /** Aparência do terminal SSH/Telnet (vale para todas as sessões). */
+    terminalTema: string;
+    terminalFonte: number;
+    setTerminalTema: (id: string) => void;
+    setTerminalFonte: (px: number) => void;
     /** Imagem de fundo escolhida por usuário (chave = id do Chat Interno). */
     fundoPorUsuario: Record<string, FundoEscolhido>;
     setFundo: (userKey: string, fundo: FundoEscolhido) => void;
@@ -82,6 +87,10 @@ export const usePreferences = create(
       setThemeAuto: (themeAuto) => set({ themeAuto }),
       setAccent: (accent) => set({ accent }),
       setDarkBackground: (darkBackground) => set({ darkBackground }),
+      terminalTema: "noite",
+      terminalFonte: 14,
+      setTerminalTema: (terminalTema) => set({ terminalTema }),
+      setTerminalFonte: (px) => set({ terminalFonte: Math.min(24, Math.max(10, Math.round(px))) }),
       fundoPorUsuario: {},
       setFundo: (userKey, fundo) => set((s) => ({ fundoPorUsuario: { ...s.fundoPorUsuario, [userKey]: fundo } })),
       collapsed: false,

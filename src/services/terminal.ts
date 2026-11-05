@@ -1,4 +1,12 @@
 export type ProtocoloTerminal = "ssh" | "telnet";
+export type ModoAntiIdle = "nulo" | "enter" | "espaco";
+export interface AntiIdle { ativo: boolean; segundos: number; modo: ModoAntiIdle }
+export const MODOS_ANTI_IDLE: { id: ModoAntiIdle; nome: string; dica: string }[] = [
+  { id: "nulo", nome: "Nulo (invisível)", dica: "Não aparece na tela; funciona na maioria dos equipamentos." },
+  { id: "espaco", nome: "Espaço e apagar", dica: "Digita um espaço e apaga em seguida." },
+  { id: "enter", nome: "Enter", dica: "Pula uma linha em branco; use se o equipamento ignorar os outros." },
+];
+export const ANTI_IDLE_PADRAO: AntiIdle = { ativo: true, segundos: 60, modo: "nulo" };
 export interface EquipamentoTerminal {
   id: string;
   nome: string;
@@ -8,6 +16,9 @@ export interface EquipamentoTerminal {
   porta: number;
   usuario: string;
   temSenha: boolean;
+  antiIdle: boolean;
+  antiIdleSegundos: number;
+  antiIdleModo: ModoAntiIdle;
 }
 export interface EquipamentoForm {
   id?: string;
@@ -19,12 +30,16 @@ export interface EquipamentoForm {
   usuario: string;
   senha?: string;
   guardarSenha: boolean;
+  antiIdle: boolean;
+  antiIdleSegundos: number;
+  antiIdleModo: ModoAntiIdle;
 }
 export interface PedidoConexao {
   sessao: string;
   equipamentoId?: string;
   rapido?: { protocolo: ProtocoloTerminal; host: string; porta: number; usuario?: string };
   senha?: string;
+  antiIdle?: AntiIdle;
   cols: number;
   rows: number;
 }

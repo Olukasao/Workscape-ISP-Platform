@@ -2,7 +2,10 @@ import { useSyncExternalStore } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-import type { PedidoConexao, ProtocoloTerminal } from "./terminal";
+import type { AntiIdle, PedidoConexao, ProtocoloTerminal } from "./terminal";
+import { ANTI_IDLE_PADRAO } from "./terminal";
+import { usePreferences } from "../stores/workspace";
+import { temaPorId } from "./terminalTemas";
 
 /**
  * Sessões abertas do terminal. Ficam fora do React para continuarem vivas (com o histórico da tela)
@@ -15,6 +18,7 @@ export interface Sessao {
   detalhe: string;
   estado: EstadoSessao;
   mensagem?: string;
+  antiIdle: AntiIdle;
   /** Para reconectar: o equipamento salvo ou o endereço rápido (nunca a senha digitada). */
   origem: { equipamentoId?: string; rapido?: { protocolo: ProtocoloTerminal; host: string; porta: number; usuario?: string } };
   term: Terminal;
@@ -53,13 +57,14 @@ function ligarEventos() {
 }
 
 function criarTerminal(id: string) {
+  const { terminalTema, terminalFonte } = usePreferences.getState();
   const term = new Terminal({
     fontFamily: "Consolas, 'Cascadia Mono', 'Courier New', monospace",
-    fontSize: 14,
+    fontSize: terminalFonte,
     cursorBlink: true,
     scrollback: 5000,
     convertEol: false,
-    theme: { background: "#0b1020", foreground: "#d8e0f0", cursor: "#7fb2ff", selectionBackground: "#2f5fb3aa" },
+    theme: temaPorId(terminalTema).tema,
   });
   const fit = new FitAddon();
   term.loadAddon(fit);
@@ -80,23 +85,24 @@ function criarTerminal(id: string) {
   return { term, fit, el };
 }
 
-export async function abrirSessao(dono: string, titulo: string, detalhe: string, origem: Sessao["origem"], senha?: string, idExistente?: string) {
+export async function abrirSessao(dono: string, titulo: string, detalhe: string, origem: Sessao["origem"], senha?: string, idExistente?: string, antiIdle: AntiIdle = ANTI_IDLE_PADRAO) {
   ligarEventos();
   const id = idExistente ?? crypto.randomUUID();
   let s = sessoes.find((i) => i.id === id);
   if (!s) {
     const t = criarTerminal(id);
-    s = { id, titulo, detalhe, estado: "conectando", origem, ...t };
+    s = { id, titulo, detalhe, estado: "conectando", origem, antiIdle, ...t };
     sessoes = [...sessoes, s];
   } else {
     s.estado = "conectando";
     s.mensagem = undefined;
+    s.antiIdle = antiIdle;
     s.term.write("\r\n\x1b[90m[reconectando…]\x1b[0m\r\n");
     sessoes = [...sessoes];
   }
   ativa = id;
   notificar();
-  const pedido: PedidoConexao = { sessao: id, ...origem, ...(senha ? { senha } : {}), cols: s.term.cols || 100, rows: s.term.rows || 30 };
+  const pedido: PedidoConexao = { sessao: id, ...origem, ...(senha ? { senha } : {}), antiIdle, cols: s.term.cols || 100, rows: s.term.rows || 30 };
   try {
     await window.desktop!.terminalConectar({ dono, conexao: pedido });
   } catch (erro) {
@@ -123,4 +129,24 @@ export function fecharSessao(id: string) {
   sessoes = sessoes.filter((i) => i.id !== id);
   if (ativa === id) ativa = sessoes.at(-1)?.id ?? null;
   notificar();
+}
+
+/** Liga/desliga ou muda o anti-idle de uma sessão já aberta. */
+export async function definirAntiIdle(id: string, config: AntiIdle) {
+  const s = sessoes.find((i) => i.id === id);
+  if (!s) return;
+  s.antiIdle = config;
+  sessoes = [...sessoes];
+  notificar();
+  if (s.estado === "conectado" || s.estado === "conectando") await window.desktop?.terminalAntiIdle({ sessao: id, config });
+}
+
+/** Aplica tema e tamanho de letra a todas as sessões abertas. */
+export function aplicarAparencia(temaId: string, fonte: number) {
+  const tema = temaPorId(temaId).tema;
+  for (const s of sessoes) {
+    s.term.options.theme = tema;
+    s.term.options.fontSize = fonte;
+    try { s.fit.fit(); } catch { /* sem tamanho ainda */ }
+  }
 }

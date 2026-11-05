@@ -389,6 +389,7 @@ async function bootstrap() {
   handle("terminal:conectar", (p) => { const v = z.object({ dono: donoTerminal, conexao: z.unknown() }).strict().parse(p); return terminal.conectar(v.dono, v.conexao); });
   handle("terminal:entrada", (p) => { const v = z.object({ sessao: z.string().max(64), dados: z.string().max(65536) }).strict().parse(p); terminal.entrada(v.sessao, v.dados); });
   handle("terminal:tamanho", (p) => { const v = z.object({ sessao: z.string().max(64), cols: z.number().int().min(10).max(500), rows: z.number().int().min(2).max(200) }).strict().parse(p); terminal.tamanho(v.sessao, v.cols, v.rows); });
+  handle("terminal:anti-idle", (p) => { const v = z.object({ sessao: z.string().max(64), config: z.unknown() }).strict().parse(p); terminal.configurarAntiIdle(v.sessao, v.config); });
   handle("terminal:fechar", (p) => { terminal.fechar(z.object({ sessao: z.string().max(64) }).strict().parse(p).sessao); });
   app.on("before-quit", () => terminal.fecharTodas());
   // Diagnóstico de conexão (útil pela VPN): testa a porta de cada servidor e confere a VPN do Windows.

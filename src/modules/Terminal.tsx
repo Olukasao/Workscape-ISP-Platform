@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Search, SquareTerminal, X, Pencil, Trash2, Plug, KeyRound, RefreshCw, FolderTree } from "lucide-react";
+import { Plus, Minus, Search, SquareTerminal, X, Pencil, Trash2, Plug, KeyRound, RefreshCw, FolderTree, Palette, Timer, Check } from "lucide-react";
 import { clsx } from "clsx";
-import { useSession } from "../stores/workspace";
+import { useSession, usePreferences } from "../stores/workspace";
+import { TEMAS_TERMINAL, temaPorId, FONTE_MIN, FONTE_MAX } from "../services/terminalTemas";
 import { Button } from "../components/ui/button";
 import { errorMessage } from "../services/api";
-import { lerEnderecoRapido, portaPadrao, type EquipamentoForm, type EquipamentoTerminal, type ProtocoloTerminal } from "../services/terminal";
-import { abrirSessao, ativarSessao, fecharSessao, useSessoesTerminal, type Sessao } from "../services/terminalSessoes";
+import { lerEnderecoRapido, portaPadrao, ANTI_IDLE_PADRAO, MODOS_ANTI_IDLE, type AntiIdle, type EquipamentoForm, type EquipamentoTerminal, type ProtocoloTerminal } from "../services/terminal";
+import { abrirSessao, aplicarAparencia, ativarSessao, definirAntiIdle, fecharSessao, useSessoesTerminal, type Sessao } from "../services/terminalSessoes";
 
-const vazio = (): EquipamentoForm => ({ nome: "", grupo: "", protocolo: "ssh", host: "", porta: 22, usuario: "", senha: "", guardarSenha: false });
+const vazio = (): EquipamentoForm => ({ nome: "", grupo: "", protocolo: "ssh", host: "", porta: 22, usuario: "", senha: "", guardarSenha: false, antiIdle: true, antiIdleSegundos: 60, antiIdleModo: "nulo" });
 
 /** Terminal SSH/Telnet dentro do Workspace: lista de equipamentos à esquerda e sessões em abas. */
 export default function Terminal({ active }: { active: boolean }) {
@@ -19,6 +20,9 @@ export default function Terminal({ active }: { active: boolean }) {
   const [rapido, setRapido] = useState("");
   const [erro, setErro] = useState("");
   const [edicao, setEdicao] = useState<EquipamentoForm | null>(null);
+  const { terminalTema, terminalFonte, setTerminalTema, setTerminalFonte } = usePreferences();
+  const [menu, setMenu] = useState<null | "tema" | "antiidle">(null);
+  useEffect(() => { aplicarAparencia(terminalTema, terminalFonte); }, [terminalTema, terminalFonte]);
   const [pedirSenha, setPedirSenha] = useState<{ titulo: string; confirmar: (senha?: string) => void } | null>(null);
 
   const carregar = async () => {
@@ -35,7 +39,7 @@ export default function Terminal({ active }: { active: boolean }) {
   }, [equipamentos, busca]);
 
   const conectar = (e: EquipamentoTerminal) => {
-    const abrir = (senha?: string) => void abrirSessao(dono, e.nome, `${e.usuario ? e.usuario + "@" : ""}${e.host}:${e.porta}`, { equipamentoId: e.id }, senha);
+    const abrir = (senha?: string) => void abrirSessao(dono, e.nome, `${e.usuario ? e.usuario + "@" : ""}${e.host}:${e.porta}`, { equipamentoId: e.id }, senha, undefined, { ativo: e.antiIdle, segundos: e.antiIdleSegundos, modo: e.antiIdleModo });
     if (e.protocolo === "ssh" && !e.temSenha) setPedirSenha({ titulo: `Senha de ${e.usuario || "acesso"} em ${e.nome}`, confirmar: abrir });
     else abrir();
   };
@@ -44,7 +48,7 @@ export default function Terminal({ active }: { active: boolean }) {
     if (!r) { setErro("Endereço inválido. Exemplos: 10.0.0.1, admin@10.0.0.1:2222, telnet://10.0.0.1"); return; }
     setErro("");
     const abrir = (senha?: string) => {
-      void abrirSessao(dono, r.host, `${r.usuario ? r.usuario + "@" : ""}${r.host}:${r.porta}`, { rapido: r }, senha);
+      void abrirSessao(dono, r.host, `${r.usuario ? r.usuario + "@" : ""}${r.host}:${r.porta}`, { rapido: r }, senha, undefined, ANTI_IDLE_PADRAO);
       setRapido("");
     };
     if (r.protocolo === "ssh") setPedirSenha({ titulo: `Senha de ${r.usuario || "acesso"} em ${r.host}`, confirmar: abrir });
@@ -52,7 +56,7 @@ export default function Terminal({ active }: { active: boolean }) {
   };
   const reconectar = (s: Sessao) => {
     const e = s.origem.equipamentoId ? equipamentos.find((i) => i.id === s.origem.equipamentoId) : undefined;
-    const refazer = (senha?: string) => void abrirSessao(dono, s.titulo, s.detalhe, s.origem, senha, s.id);
+    const refazer = (senha?: string) => void abrirSessao(dono, s.titulo, s.detalhe, s.origem, senha, s.id, s.antiIdle);
     const ssh = e ? e.protocolo === "ssh" && !e.temSenha : s.origem.rapido?.protocolo === "ssh";
     if (ssh) setPedirSenha({ titulo: `Senha para reconectar em ${s.titulo}`, confirmar: refazer });
     else refazer();
@@ -76,7 +80,7 @@ export default function Terminal({ active }: { active: boolean }) {
   const atual = sessoes.find((s) => s.id === ativa);
 
   return (
-    <div className="term">
+    <div className="term" style={{ "--term-fundo": temaPorId(terminalTema).tema.background, "--term-texto": temaPorId(terminalTema).tema.foreground } as React.CSSProperties}>
       <aside className="term-lista">
         <div className="term-lista-topo">
           <label className="term-busca"><Search size={15} /><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar equipamento" aria-label="Buscar equipamento" /></label>
@@ -111,19 +115,62 @@ export default function Terminal({ active }: { active: boolean }) {
               </div>
             ))}
           </div>
+          <div className="term-ferramentas">
+            <button type="button" className={clsx("term-ico", atual?.antiIdle.ativo && "ligado")} disabled={!atual} aria-label="Anti-idle" title={atual ? (atual.antiIdle.ativo ? `Anti-idle ligado (a cada ${atual.antiIdle.segundos} s)` : "Anti-idle desligado") : "Abra uma sessão para usar o anti-idle"} onClick={() => setMenu(menu === "antiidle" ? null : "antiidle")}><Timer size={16} /></button>
+            <button type="button" className="term-ico" aria-label="Temas e letra" title="Temas e tamanho da letra" onClick={() => setMenu(menu === "tema" ? null : "tema")}><Palette size={16} /></button>
+          </div>
           <form className="term-rapido" onSubmit={(e) => { e.preventDefault(); conectarRapido(); }}>
             <input value={rapido} onChange={(e) => setRapido(e.target.value)} placeholder="Conexão rápida: usuario@10.0.0.1:22" aria-label="Conexão rápida" />
             <Button type="submit" size="sm" disabled={!rapido.trim()}>Conectar</Button>
           </form>
         </div>
         {erro && !edicao ? <p className="term-erro" role="alert">{erro}</p> : null}
-        <TelaSessoes sessoes={sessoes} ativa={ativa} visivel={active} />
+        <TelaSessoes sessoes={sessoes} ativa={ativa} visivel={active} fundo={temaPorId(terminalTema).tema.background} />
         {!atual ? (
           <div className="term-vazio"><SquareTerminal size={32} /><p>Escolha um equipamento na lista ou digite um endereço na conexão rápida.</p></div>
         ) : atual.estado === "fechado" || atual.estado === "erro" ? (
           <div className="term-reconectar"><Button size="sm" onClick={() => reconectar(atual)}><RefreshCw size={14} />Reconectar</Button></div>
         ) : null}
       </section>
+      {menu === "tema" ? (
+        <div className="term-menu" role="dialog" aria-label="Temas e letra">
+          <strong>Tema</strong>
+          <div className="term-temas">
+            {TEMAS_TERMINAL.map((t) => (
+              <button key={t.id} type="button" className="term-tema" aria-pressed={terminalTema === t.id} onClick={() => setTerminalTema(t.id)}>
+                <i style={{ background: t.tema.background, color: t.tema.foreground }}>Aa</i>
+                <span>{t.nome}</span>
+                {terminalTema === t.id ? <Check size={14} /> : null}
+              </button>
+            ))}
+          </div>
+          <strong>Tamanho da letra</strong>
+          <div className="term-fonte">
+            <button type="button" aria-label="Diminuir letra" disabled={terminalFonte <= FONTE_MIN} onClick={() => setTerminalFonte(terminalFonte - 1)}><Minus size={14} /></button>
+            <span>{terminalFonte} px</span>
+            <button type="button" aria-label="Aumentar letra" disabled={terminalFonte >= FONTE_MAX} onClick={() => setTerminalFonte(terminalFonte + 1)}><Plus size={14} /></button>
+          </div>
+          <small className="muted">Vale para todas as abas e fica guardado neste computador.</small>
+        </div>
+      ) : null}
+      {menu === "antiidle" && atual ? (
+        <div className="term-menu" role="dialog" aria-label="Anti-idle">
+          <strong>Anti-idle (anti-AFK)</strong>
+          <small className="muted">Evita que o equipamento derrube a sessão por inatividade: se você ficar sem digitar, o Workspace envia um sinal discreto.</small>
+          <label className="term-check"><input type="checkbox" checked={atual.antiIdle.ativo} onChange={(e) => void definirAntiIdle(atual.id, { ...atual.antiIdle, ativo: e.target.checked })} />Ligado nesta sessão</label>
+          <label>Enviar depois de
+            <select value={atual.antiIdle.segundos} onChange={(e) => void definirAntiIdle(atual.id, { ...atual.antiIdle, segundos: Number(e.target.value) })}>
+              {[15, 30, 60, 120, 180, 300, 600].map((n) => <option key={n} value={n}>{n < 60 ? `${n} segundos` : `${n / 60} min`}</option>)}
+            </select>
+          </label>
+          <label>O que enviar
+            <select value={atual.antiIdle.modo} onChange={(e) => void definirAntiIdle(atual.id, { ...atual.antiIdle, modo: e.target.value as AntiIdle["modo"] })}>
+              {MODOS_ANTI_IDLE.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+            </select>
+          </label>
+          <small className="muted">{MODOS_ANTI_IDLE.find((m) => m.id === atual.antiIdle.modo)?.dica}</small>
+        </div>
+      ) : null}
       {edicao ? (
         <div className="term-modal" role="dialog" aria-modal="true" aria-label="Equipamento">
           <form className="term-form" onSubmit={(e) => { e.preventDefault(); void salvar(); }}>
@@ -147,6 +194,19 @@ export default function Terminal({ active }: { active: boolean }) {
                 {edicao.guardarSenha ? <label>Senha<input type="password" value={edicao.senha ?? ""} onChange={(e) => setEdicao({ ...edicao, senha: e.target.value })} placeholder={edicao.id ? "Deixe em branco para manter a atual" : ""} autoComplete="new-password" /></label> : <small className="muted">Sem guardar, a senha é pedida a cada conexão.</small>}
               </>
             ) : <small className="muted">No Telnet a senha é digitada no próprio terminal e nunca é guardada.</small>}
+            <fieldset className="term-antiidle">
+              <label className="term-check"><input type="checkbox" checked={edicao.antiIdle} onChange={(e) => setEdicao({ ...edicao, antiIdle: e.target.checked })} />Anti-idle: não deixar a sessão cair por inatividade</label>
+              {edicao.antiIdle ? (
+                <div className="term-form-linha">
+                  <label>Depois de (segundos)<input type="number" min={10} max={3600} value={edicao.antiIdleSegundos} onChange={(e) => setEdicao({ ...edicao, antiIdleSegundos: Math.min(3600, Math.max(10, Number(e.target.value) || 60)) })} /></label>
+                  <label>Enviar
+                    <select value={edicao.antiIdleModo} onChange={(e) => setEdicao({ ...edicao, antiIdleModo: e.target.value as AntiIdle["modo"] })}>
+                      {MODOS_ANTI_IDLE.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                    </select>
+                  </label>
+                </div>
+              ) : null}
+            </fieldset>
             {erro ? <p className="term-erro" role="alert">{erro}</p> : null}
             <div className="term-form-acoes">
               {edicao.id ? <Button type="button" variant="ghost" size="sm" onClick={() => void window.desktop!.terminalEsquecerChave({ host: edicao.host, porta: edicao.porta }).then(() => setErro("Chave do servidor esquecida; a próxima conexão guarda a nova."))} title="Use depois de trocar o equipamento">Esquecer chave do servidor</Button> : <span />}
@@ -177,7 +237,7 @@ function PedidoSenha({ titulo, onCancelar, onConfirmar }: { titulo: string; onCa
 }
 
 /** Mantém o elemento do xterm de cada sessão dentro da área e ajusta o tamanho ao espaço disponível. */
-function TelaSessoes({ sessoes, ativa, visivel }: { sessoes: Sessao[]; ativa: string | null; visivel: boolean }) {
+function TelaSessoes({ sessoes, ativa, visivel, fundo }: { sessoes: Sessao[]; ativa: string | null; visivel: boolean; fundo?: string }) {
   const area = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const raiz = area.current;
@@ -194,5 +254,5 @@ function TelaSessoes({ sessoes, ativa, visivel }: { sessoes: Sessao[]; ativa: st
     obs.observe(raiz);
     return () => obs.disconnect();
   }, [sessoes, ativa, visivel]);
-  return <div className="term-area" ref={area} hidden={!sessoes.length} />;
+  return <div className="term-area" ref={area} hidden={!sessoes.length} style={fundo ? { background: fundo } : undefined} />;
 }

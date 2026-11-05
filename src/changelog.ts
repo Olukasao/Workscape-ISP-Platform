@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.106",
+    data: "2026-11-05",
+    itens: [
+      "Terminal: o botão \"Novo\" foi corrigido (ficava meio escondido e difícil de clicar).",
+      "Terminal: agora há temas de cores (Azul-noite, Clássico, Matrix, Âmbar, Solarized, Dracula, Monokai e Claro) e ajuste do tamanho da letra.",
+      "Terminal: novo Anti-idle (anti-AFK). Se você ficar um tempo sem digitar, o Workspace manda um sinal discreto para o equipamento não derrubar a sessão. Dá para ligar, desligar e escolher o tempo em cada sessão ou em cada equipamento.",
+    ],
+  },
+  {
     versao: "0.5.105",
     data: "2026-11-05",
     itens: [

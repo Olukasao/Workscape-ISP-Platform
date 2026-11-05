@@ -12,6 +12,16 @@ import { z } from "zod";
 export const protocolos = ["ssh", "telnet"] as const;
 const hostRegex = /^[A-Za-z0-9._:-]{1,253}$/;
 
+/** Anti-idle: manda um caractere discreto de tempos em tempos para o equipamento não derrubar a sessão por inatividade. */
+export const modosAntiIdle = ["nulo", "enter", "espaco"] as const;
+export const textoAntiIdle: Record<(typeof modosAntiIdle)[number], string> = { nulo: "\0", enter: "\r", espaco: " \x08" };
+const antiIdleCampos = {
+  antiIdle: z.boolean().default(true),
+  antiIdleSegundos: z.number().int().min(10).max(3600).default(60),
+  antiIdleModo: z.enum(modosAntiIdle).default("nulo"),
+};
+export const antiIdleSchema = z.object({ ativo: z.boolean(), segundos: z.number().int().min(10).max(3600), modo: z.enum(modosAntiIdle) }).strict();
+
 export const equipamentoSchema = z
   .object({
     id: z.string().max(64).optional(),
@@ -24,6 +34,7 @@ export const equipamentoSchema = z
     /** Só chega preenchida quando a pessoa digitou uma senha nova; vazia mantém a que já estava salva. */
     senha: z.string().max(512).optional(),
     guardarSenha: z.boolean().default(false),
+    ...antiIdleCampos,
   })
   .strict();
 
@@ -34,6 +45,7 @@ export const conectarSchema = z
     /** Conexão rápida (sem equipamento salvo) ou senha digitada na hora. */
     rapido: equipamentoSchema.omit({ id: true, nome: true, grupo: true, guardarSenha: true }).partial({ usuario: true, senha: true }).optional(),
     senha: z.string().max(512).optional(),
+    antiIdle: antiIdleSchema.optional(),
     cols: z.number().int().min(10).max(500).default(100),
     rows: z.number().int().min(2).max(200).default(30),
   })
@@ -47,10 +59,16 @@ export interface EquipamentoSalvo {
   host: string;
   porta: number;
   usuario: string;
+  antiIdle?: boolean;
+  antiIdleSegundos?: number;
+  antiIdleModo?: (typeof modosAntiIdle)[number];
   /** Senha cifrada pelo Windows (safeStorage), em base64. */
   senhaCifrada?: string;
 }
-export interface EquipamentoDto extends Omit<EquipamentoSalvo, "senhaCifrada"> {
+export interface EquipamentoDto extends Omit<EquipamentoSalvo, "senhaCifrada" | "antiIdle" | "antiIdleSegundos" | "antiIdleModo"> {
+  antiIdle: boolean;
+  antiIdleSegundos: number;
+  antiIdleModo: (typeof modosAntiIdle)[number];
   temSenha: boolean;
 }
 
@@ -64,7 +82,13 @@ export type EnviarEvento = (canal: "terminal:dados" | "terminal:estado", payload
 
 type Conexao = { fechar(): void; escrever(dados: string): void; redimensionar(cols: number, rows: number): void };
 
-const dto = ({ senhaCifrada, ...resto }: EquipamentoSalvo): EquipamentoDto => ({ ...resto, temSenha: Boolean(senhaCifrada) });
+const dto = ({ senhaCifrada, ...resto }: EquipamentoSalvo): EquipamentoDto => ({
+  ...resto,
+  antiIdle: resto.antiIdle ?? true,
+  antiIdleSegundos: resto.antiIdleSegundos ?? 60,
+  antiIdleModo: resto.antiIdleModo ?? "nulo",
+  temSenha: Boolean(senhaCifrada),
+});
 
 export function impressaoDigital(chave: Buffer) {
   return "SHA256:" + createHash("sha256").update(chave).digest("base64").replace(/=+$/, "");
@@ -116,6 +140,7 @@ export function tamanhoTelnet(cols: number, rows: number) {
 
 export class ServicoTerminal {
   private sessoes = new Map<string, Conexao>();
+  private antiIdles = new Map<string, { ativo: boolean; segundos: number; modo: (typeof modosAntiIdle)[number]; ultimo: number; timer: ReturnType<typeof setInterval> }>();
   constructor(
     private arquivoEquipamentos: (dono: string) => string,
     private arquivoChaves: string,
@@ -153,6 +178,7 @@ export class ServicoTerminal {
     const novo: EquipamentoSalvo = {
       id: anterior?.id ?? randomUUID(),
       nome: e.nome, grupo: e.grupo, protocolo: e.protocolo, host: e.host, porta: e.porta, usuario: e.usuario,
+      antiIdle: e.antiIdle, antiIdleSegundos: e.antiIdleSegundos, antiIdleModo: e.antiIdleModo,
       ...(senhaCifrada ? { senhaCifrada } : {}),
     };
     await this.gravar(dono, anterior ? lista.map((i) => (i.id === novo.id ? novo : i)) : [...lista, novo]);
@@ -206,6 +232,7 @@ export class ServicoTerminal {
     } else throw new Error("Informe o equipamento.");
 
     this.estado(c.sessao, "conectando");
+    this.iniciarAntiIdle(c.sessao, c.antiIdle ?? { ativo: true, segundos: 60, modo: "nulo" });
     if (alvo.protocolo === "ssh") this.abrirSsh(c.sessao, alvo, c.cols, c.rows);
     else this.abrirTelnet(c.sessao, alvo, c.cols, c.rows);
   }
@@ -218,6 +245,7 @@ export class ServicoTerminal {
       if (encerrada) return;
       encerrada = true;
       this.sessoes.delete(sessao);
+      this.pararAntiIdle(sessao);
       try { cliente.end(); } catch { /* já fechado */ }
       this.estado(sessao, estado, mensagem);
     };
@@ -280,6 +308,7 @@ export class ServicoTerminal {
       if (encerrada) return;
       encerrada = true;
       this.sessoes.delete(sessao);
+      this.pararAntiIdle(sessao);
       soquete.destroy();
       this.estado(sessao, estado, mensagem);
     };
@@ -306,7 +335,36 @@ export class ServicoTerminal {
     soquete.on("close", () => encerrar("fechado"));
   }
 
+  /** A cada 5 s confere se a pessoa ficou sem digitar pelo tempo escolhido e, se sim, manda o caractere de manutenção. */
+  private iniciarAntiIdle(sessao: string, cfg: { ativo: boolean; segundos: number; modo: (typeof modosAntiIdle)[number] }) {
+    this.pararAntiIdle(sessao);
+    const timer = setInterval(() => {
+      const a = this.antiIdles.get(sessao);
+      const conexao = this.sessoes.get(sessao);
+      if (!a || !conexao) return;
+      if (a.ativo && Date.now() - a.ultimo >= a.segundos * 1000) {
+        a.ultimo = Date.now();
+        conexao.escrever(textoAntiIdle[a.modo]);
+      }
+    }, 5000);
+    timer.unref?.();
+    this.antiIdles.set(sessao, { ...cfg, ultimo: Date.now(), timer });
+  }
+  private pararAntiIdle(sessao: string) {
+    const a = this.antiIdles.get(sessao);
+    if (a) clearInterval(a.timer);
+    this.antiIdles.delete(sessao);
+  }
+  configurarAntiIdle(sessao: string, entrada: unknown) {
+    const cfg = antiIdleSchema.parse(entrada);
+    const a = this.antiIdles.get(sessao);
+    if (!a) return;
+    Object.assign(a, cfg, { ultimo: Date.now() });
+  }
+
   entrada(sessao: string, dados: string) {
+    const a = this.antiIdles.get(sessao);
+    if (a) a.ultimo = Date.now();
     this.sessoes.get(sessao)?.escrever(dados);
   }
   tamanho(sessao: string, cols: number, rows: number) {

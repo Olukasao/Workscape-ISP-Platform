@@ -109,6 +109,7 @@ contextBridge.exposeInMainWorld("desktop", {
   terminalConectar: (value: unknown) => ipcRenderer.invoke("terminal:conectar", value),
   terminalEntrada: (value: unknown) => ipcRenderer.invoke("terminal:entrada", value),
   terminalTamanho: (value: unknown) => ipcRenderer.invoke("terminal:tamanho", value),
+  terminalAntiIdle: (value: unknown) => ipcRenderer.invoke("terminal:anti-idle", value),
   terminalFechar: (value: unknown) => ipcRenderer.invoke("terminal:fechar", value),
   onTerminalDados: (callback: (value: unknown) => void) => {
     const listener = (_event: unknown, value: unknown) => callback(value);

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { generateKeyPairSync } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import net from "node:net";
@@ -84,5 +84,43 @@ describe("serviço do terminal (SSH real contra servidor local)", () => {
   });
   it("rejeita endereço inválido", async () => {
     await expect(svc.salvar("1", { nome: "x", protocolo: "ssh", host: "a b;rm", porta: 22 })).rejects.toThrow();
+  });
+});
+
+describe("anti-idle", () => {
+  it("envia o sinal só depois do tempo sem digitar, respeita o desligar e a digitação adia", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"] });
+    const dir = mkdtempSync(path.join(tmpdir(), "term-ai-"));
+    const eventos: { canal: string; p: any }[] = [];
+    const svc = new ServicoTerminal((d) => path.join(dir, `e-${d}.json`), path.join(dir, "c.json"), cifra, (canal, p) => eventos.push({ canal, p }));
+    const recebido: Buffer[] = [];
+    const tel = net.createServer((s) => { s.on("data", (d) => recebido.push(Buffer.from(d))); });
+    await new Promise<void>((r) => tel.listen(0, "127.0.0.1", r));
+    const porta = (tel.address() as net.AddressInfo).port;
+    await svc.conectar("1", { sessao: "x", rapido: { protocolo: "telnet", host: "127.0.0.1", porta }, antiIdle: { ativo: true, segundos: 10, modo: "enter" }, cols: 80, rows: 24 });
+    await vi.waitFor(() => expect(eventos.some((e) => e.p.estado === "conectado")).toBe(true), { timeout: 3000, interval: 20 });
+    const total = () => Buffer.concat(recebido).toString("latin1");
+    const base = total().length;
+    vi.advanceTimersByTime(5000);                       // 5 s sem digitar: nada ainda
+    await new Promise((r) => setImmediate(r));
+    expect(total().length).toBe(base);
+    vi.advanceTimersByTime(6000);                       // passou de 10 s: envia Enter
+    await vi.waitFor(() => expect(total().slice(base)).toContain("\r"), { timeout: 3000, interval: 20 });
+    const depoisDoPrimeiro = total().length;
+    svc.configurarAntiIdle("x", { ativo: false, segundos: 10, modo: "enter" });
+    vi.advanceTimersByTime(30000);                      // desligado: não envia mais
+    await new Promise((r) => setTimeout(r, 50));
+    expect(total().length).toBe(depoisDoPrimeiro);
+    svc.fecharTodas(); tel.close(); vi.useRealTimers(); rmSync(dir, { recursive: true, force: true });
+  });
+  it("guarda a configuração de anti-idle no equipamento e usa o padrão nos antigos", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "term-ai2-"));
+    const svc = new ServicoTerminal((d) => path.join(dir, `e-${d}.json`), path.join(dir, "c.json"), cifra, () => {});
+    const novo = await svc.salvar("1", { nome: "A", protocolo: "telnet", host: "10.0.0.1", porta: 23, antiIdle: false, antiIdleSegundos: 120, antiIdleModo: "espaco" });
+    expect(novo).toMatchObject({ antiIdle: false, antiIdleSegundos: 120, antiIdleModo: "espaco" });
+    const padrao = await svc.salvar("1", { nome: "B", protocolo: "telnet", host: "10.0.0.2", porta: 23 });
+    expect(padrao).toMatchObject({ antiIdle: true, antiIdleSegundos: 60, antiIdleModo: "nulo" });
+    await expect(svc.salvar("1", { nome: "C", protocolo: "telnet", host: "10.0.0.3", porta: 23, antiIdleSegundos: 2 })).rejects.toThrow();
+    rmSync(dir, { recursive: true, force: true });
   });
 });
