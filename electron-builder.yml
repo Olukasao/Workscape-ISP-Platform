@@ -1,6 +1,8 @@
 appId: br.com.acessanet.workspace
 productName: Acessa Workspace
 asar: true
+# Tudo o que o app usa já vem empacotado nos arquivos de dist (node_modules fica de fora); o ssh2 só traz módulos nativos opcionais, que não são usados.
+npmRebuild: false
 directories:
   output: release
 files:
