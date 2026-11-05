@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.102",
+    data: "2026-11-05",
+    itens: [
+      "Configurações > Aparência: cada pessoa pode escolher a própria imagem de fundo do Workspace (ou ficar sem imagem) e decidir se ela aparece inteira ou preenchendo a tela.",
+      "As imagens de fundo do Ed e do Pedro agora aparecem inteiras, sem cortar as bordas.",
+    ],
+  },
+  {
     versao: "0.5.101",
     data: "2026-11-05",
     itens: [

@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServers, useSession, usePreferences } from "../stores/workspace";
 import { Button } from "../components/ui/button";
 import { errorMessage } from "../services/api";
+import { FUNDO_PADRAO_POR_USUARIO, ESCOLHA_INICIAL, prepararImagem, resolverFundo } from "../services/fundoUsuario";
 import { DESTAQUES, FUNDOS, COR_PADRAO } from "../services/aparencia";
 import { PageHeader } from "../components/ui/primitives";
 import { useZoomPreference } from "../services/useApplicationZoom";
@@ -17,6 +18,9 @@ export default function Settings() {
   const { config, save } = useServers(),
     { theme, setTheme, themeAuto, setThemeAuto, accent, setAccent, darkBackground, setDarkBackground, autoHideSidebar, setAutoHideSidebar, assistenteFlutuante, setAssistenteFlutuante } = usePreferences(),
     clear = useSession((s) => s.clear),
+    usuario = useSession((s) => s.user),
+    { fundoPorUsuario, setFundo } = usePreferences(),
+    [erroFundo, setErroFundo] = useState(""),
     query = useQueryClient(),
     navigate = useNavigate();
   const [form, setForm] = useState(config),
@@ -288,6 +292,50 @@ export default function Settings() {
               ))}
             </div>
             {theme === "light" ? <small className="muted">Aparece quando o aplicativo estiver no modo escuro.</small> : null}
+          </div>
+          <div className="aparencia-linha">
+            <span className="aparencia-rotulo">Imagem de fundo</span>
+            {usuario ? (() => {
+              const chave = String(usuario.id);
+              const escolha = fundoPorUsuario[chave] ?? ESCOLHA_INICIAL;
+              const atual = resolverFundo(usuario.id, escolha);
+              const temPadrao = usuario.id in FUNDO_PADRAO_POR_USUARIO;
+              return (
+                <>
+                  <div className="aparencia-amostras" role="group" aria-label="Imagem de fundo">
+                    <div className="aparencia-fundo-previa" style={atual ? { backgroundImage: `url(${JSON.stringify(atual.url)})` } : undefined} aria-hidden="true" />
+                    {temPadrao ? (
+                      <button type="button" className="aparencia-fundo" aria-pressed={escolha.tipo === "padrao"} onClick={() => setFundo(chave, { ...escolha, tipo: "padrao" })}>Arte da minha conta</button>
+                    ) : null}
+                    <button type="button" className="aparencia-fundo" aria-pressed={escolha.tipo === "nenhum" || (!temPadrao && escolha.tipo === "padrao")} onClick={() => setFundo(chave, { ...escolha, tipo: "nenhum" })}>Sem imagem</button>
+                    <label className="aparencia-fundo" aria-pressed={escolha.tipo === "proprio"} style={{ cursor: "pointer" }}>
+                      Escolher imagem…
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={async (e) => {
+                          const arquivo = e.target.files?.[0];
+                          e.target.value = "";
+                          if (!arquivo) return;
+                          try {
+                            setErroFundo("");
+                            setFundo(chave, { ...escolha, tipo: "proprio", imagem: await prepararImagem(arquivo) });
+                          } catch (erro) {
+                            setErroFundo(errorMessage(erro));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div className="aparencia-amostras" role="group" aria-label="Ajuste da imagem">
+                    <button type="button" className="aparencia-fundo" aria-pressed={escolha.ajuste === "inteira"} onClick={() => setFundo(chave, { ...escolha, ajuste: "inteira" })} title="Mostra a imagem toda, sem cortar">Imagem inteira</button>
+                    <button type="button" className="aparencia-fundo" aria-pressed={escolha.ajuste === "cobrir"} onClick={() => setFundo(chave, { ...escolha, ajuste: "cobrir" })} title="Preenche a tela, cortando as bordas se precisar">Preencher a tela</button>
+                  </div>
+                  {erroFundo ? <small className="muted" role="alert">{erroFundo}</small> : <small className="muted">Vale só para a sua conta neste computador.</small>}
+                </>
+              );
+            })() : <small className="muted">Entre na sua conta para escolher uma imagem de fundo.</small>}
           </div>
           <div>
             <Button

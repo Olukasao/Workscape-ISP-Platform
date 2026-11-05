@@ -1,3 +1,4 @@
+import type { FundoEscolhido } from "../services/fundoUsuario";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { normalizeZoom } from "../services/zoom";
@@ -57,6 +58,9 @@ export const usePreferences = create(
     setThemeAuto: (value: boolean) => void;
     setAccent: (hex: string) => void;
     setDarkBackground: (value: "marinho" | "grafite" | "preto") => void;
+    /** Imagem de fundo escolhida por usuário (chave = id do Chat Interno). */
+    fundoPorUsuario: Record<string, FundoEscolhido>;
+    setFundo: (userKey: string, fundo: FundoEscolhido) => void;
     collapsed: boolean;
     /** Barra lateral recolhe sozinha e abre ao passar o mouse; "fixada" mantém aberta. */
     autoHideSidebar: boolean;
@@ -78,6 +82,8 @@ export const usePreferences = create(
       setThemeAuto: (themeAuto) => set({ themeAuto }),
       setAccent: (accent) => set({ accent }),
       setDarkBackground: (darkBackground) => set({ darkBackground }),
+      fundoPorUsuario: {},
+      setFundo: (userKey, fundo) => set((s) => ({ fundoPorUsuario: { ...s.fundoPorUsuario, [userKey]: fundo } })),
       collapsed: false,
       autoHideSidebar: true,
       sidebarPinned: false,

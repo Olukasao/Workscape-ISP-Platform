@@ -1015,15 +1015,14 @@ small {
   flex-direction: column;
   background: var(--canvas-glow), var(--canvas);
 }
-.workspace-fundo-ed .main {
-  background-image:
-    linear-gradient(rgba(3, 7, 22, 0.34), rgba(3, 7, 22, 0.58)),
-    var(--workspace-user-wallpaper);
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
+.main { position: relative; isolation: isolate; }
+.fundo-usuario { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #070b18; }
+.fundo-usuario-borrado { position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(36px) saturate(1.1); }
+.fundo-usuario-imagem { position: absolute; inset: 0; background-position: center; background-repeat: no-repeat; }
+.fundo-usuario-imagem.inteira { background-size: contain; }
+.fundo-usuario-imagem.cobrir { background-size: cover; }
+.fundo-usuario::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(3, 7, 22, 0.34), rgba(3, 7, 22, 0.58)); }
+.aparencia-fundo-previa { width: 96px; height: 60px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface-2) center / cover no-repeat; }
 .module-area {
   flex: 1;
   min-height: 0;

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { isAxiosError } from "axios";
 import {
   HashRouter,
@@ -92,8 +92,7 @@ import {
   FiberMark,
   PageSkeleton,
 } from "../components/ui/primitives";
-import fundoEdnesio from "../../assets/ednesio.png";
-import fundoPedro from "../../assets/pedro.png";
+import FundoUsuario from "../components/FundoUsuario";
 const Dashboard = lazy(() => import("../modules/Dashboard"));
 const Chat = lazy(() => import("../modules/Chat"));
 const Navegador = lazy(() => import("../modules/Navegador"));
@@ -104,8 +103,6 @@ const Tools = lazy(() => import("../modules/Tools"));
 const query = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: true } },
 });
-const EDNESIO_USER_ID = 11;
-const PEDRO_USER_ID = 36;
 /** Transição curta ao trocar de módulo, sem remontar componentes. */
 function useRouteTransition(path: string) {
   useEffect(() => {
@@ -161,12 +158,6 @@ function Shell() {
   }, []);
   const autoRail = autoHideSidebar && !sidebarPinned;
   const sidebarCollapsed = autoHideSidebar ? !sidebarPinned && !sidebarHover : collapsed;
-  // Fundo personalizado por usuário (id do Chat Interno).
-  const fundoDoUsuario = user?.id === EDNESIO_USER_ID ? fundoEdnesio : user?.id === PEDRO_USER_ID ? fundoPedro : null;
-  const fundoEdnesioAtivo = Boolean(fundoDoUsuario);
-  const workspaceStyle = fundoDoUsuario
-    ? ({ "--workspace-user-wallpaper": `url(${JSON.stringify(fundoDoUsuario)})` } as CSSProperties)
-    : undefined;
   // Transição suave só na primeira montagem logo após o login.
   const [chegada] = useState(() => {
     try {
@@ -319,8 +310,7 @@ function Shell() {
       <ConviteTourIA />
       <TourGuiado />
       <div
-        className={`workspace ${sidebarCollapsed ? "collapsed" : ""} ${autoRail ? "auto-recolher" : ""} ${chegada ? "is-chegada" : ""} ${fundoEdnesioAtivo ? "workspace-fundo-ed" : ""}`}
-        style={workspaceStyle}
+        className={`workspace ${sidebarCollapsed ? "collapsed" : ""} ${autoRail ? "auto-recolher" : ""} ${chegada ? "is-chegada" : ""}`}
       >
         {autoRail && (
           <div
@@ -361,6 +351,7 @@ function Shell() {
           />
         </div>
         <main className="main">
+          <FundoUsuario userId={user?.id} />
           <Topbar
             section={current?.label || "Ferramentas"}
             sectionIcon={current?.icon || Wrench}
