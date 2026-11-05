@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.104",
+    data: "2026-11-05",
+    itens: [
+      "Avisos internos de prioridade alta ou crítica agora chamam a atenção: a caixa treme como um telefone tocando e vai estabilizando.",
+    ],
+  },
+  {
     versao: "0.5.103",
     data: "2026-11-05",
     itens: [

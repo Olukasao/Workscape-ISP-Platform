@@ -512,8 +512,48 @@
   from { opacity: 0; transform: translateY(14px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
+/* Avisos de prioridade alta e crítica chamam a atenção como um telefone tocando: a caixa treme forte e vai
+   estabilizando; o ícone balança junto e depois fica com um brilho suave. */
+.tomalta, .tomcritica {
+  animation: modalEnter 220ms var(--ease-out), toqueTelefone 1.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) 260ms both;
+}
+.tomalta .noticeIcon, .tomcritica .noticeIcon {
+  transform-origin: 50% 60%;
+  animation: toqueIcone 1.7s ease-in-out 260ms both, brilhoIcone 2.6s ease-in-out 2s infinite;
+}
+@keyframes toqueTelefone {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+  6%  { transform: translate3d(-9px, 0, 0) rotate(-1.4deg); }
+  12% { transform: translate3d(9px, 0, 0) rotate(1.4deg); }
+  18% { transform: translate3d(-8px, 0, 0) rotate(-1.2deg); }
+  24% { transform: translate3d(8px, 0, 0) rotate(1.2deg); }
+  30% { transform: translate3d(-7px, 0, 0) rotate(-1deg); }
+  36% { transform: translate3d(7px, 0, 0) rotate(1deg); }
+  44% { transform: translate3d(-5px, 0, 0) rotate(-0.7deg); }
+  52% { transform: translate3d(5px, 0, 0) rotate(0.7deg); }
+  62% { transform: translate3d(-3px, 0, 0) rotate(-0.4deg); }
+  72% { transform: translate3d(3px, 0, 0) rotate(0.4deg); }
+  84% { transform: translate3d(-1px, 0, 0) rotate(-0.15deg); }
+  92% { transform: translate3d(1px, 0, 0) rotate(0.15deg); }
+}
+@keyframes toqueIcone {
+  0%, 100% { transform: rotate(0) scale(1); }
+  6%  { transform: rotate(-24deg) scale(1.14); }
+  12% { transform: rotate(24deg) scale(1.14); }
+  20% { transform: rotate(-20deg) scale(1.12); }
+  28% { transform: rotate(20deg) scale(1.12); }
+  38% { transform: rotate(-14deg) scale(1.08); }
+  48% { transform: rotate(14deg) scale(1.08); }
+  60% { transform: rotate(-8deg) scale(1.04); }
+  72% { transform: rotate(8deg) scale(1.04); }
+  86% { transform: rotate(-3deg); }
+}
+@keyframes brilhoIcone {
+  0%, 100% { box-shadow: 0 8px 22px -10px var(--aviso-cor); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--aviso-cor) 18%, transparent), 0 8px 26px -8px var(--aviso-cor); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .overlay, .modal { animation: none; }
+  .overlay, .modal, .tomalta, .tomcritica, .tomalta .noticeIcon, .tomcritica .noticeIcon { animation: none; }
 }
 
 @media (max-width: 900px) {
