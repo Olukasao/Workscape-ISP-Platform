@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.111",
+    data: "2026-11-06",
+    itens: [
+      "Dashboard > Atendimento dos técnicos: agora mostra a nota que o cliente deu ao atendimento. Há a nota média geral, a nota de cada técnico no ranking e a lista das últimas avaliações, com o nome do cliente, o técnico da OS e o comentário.",
+    ],
+  },
+  {
     versao: "0.5.110",
     data: "2026-11-06",
     itens: [

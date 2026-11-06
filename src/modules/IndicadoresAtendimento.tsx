@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock, Trophy, UserX } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock, MessageSquareText, Star, Trophy, UserX } from "lucide-react";
 import { clients, errorMessage } from "../services/api";
 import { addDays, today } from "../services/agenda";
 import { EmptyState } from "../components/ui/primitives";
@@ -9,13 +9,16 @@ import { EmptyState } from "../components/ui/primitives";
 // Regras (calculadas no servidor da Agenda sobre as OS agendadas no período):
 //  atendido = encerrado no dia agendado · adiado = encerrado em dia depois do agendado ·
 //  não atendido = ainda aberto com data agendada anterior a hoje · pendente = agendado para hoje ou depois.
-interface Grupo { total: number; atendidos: number; adiados: number; naoAtendidos: number; pendentes: number }
+interface Grupo { total: number; atendidos: number; adiados: number; naoAtendidos: number; pendentes: number; avaliacoes?: number; notaMedia?: number | null }
+interface Avaliacao { cliente: string; contrato: number | string; osId: number | string; protocolo: string; tecnico: string; nota: number; comentario: string; respondidoEm: string; motivo: string }
 interface Indicadores {
   de: string; ate: string; geradoEm: string;
   totais: Grupo & { taxa: number | null };
   porDia: (Grupo & { data: string; taxa: number | null })[];
   ranking: (Grupo & { tecnico: string; taxa: number | null })[];
   porMotivo: (Grupo & { motivo: string })[];
+  avaliacoesDisponivel?: boolean;
+  avaliacoes?: Avaliacao[];
 }
 type Periodo = "dia" | "semana" | "mes";
 
@@ -50,13 +53,23 @@ function useIndicadores(de: string, ate: string) {
   });
 }
 
-function somar(lista: Grupo[]): Grupo & { taxa: number | null } {
-  const g = lista.reduce((a, x) => ({ total: a.total + x.total, atendidos: a.atendidos + x.atendidos, adiados: a.adiados + x.adiados, naoAtendidos: a.naoAtendidos + x.naoAtendidos, pendentes: a.pendentes + x.pendentes }), { total: 0, atendidos: 0, adiados: 0, naoAtendidos: 0, pendentes: 0 });
-  const vencidas = g.atendidos + g.adiados + g.naoAtendidos;
-  return { ...g, taxa: vencidas ? Math.round(((g.atendidos + g.adiados) / vencidas) * 1000) / 10 : null };
+const nota = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+function Estrelas({ valor }: { valor: number }) {
+  return (
+    <span className="indic-estrelas" role="img" aria-label={`${valor} de 5`}>
+      {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={13} className={i <= Math.round(valor) ? "cheia" : undefined} aria-hidden="true" />)}
+    </span>
+  );
 }
 
-function Cartoes({ g }: { g: Grupo & { taxa: number | null } }) {
+function somar(lista: (Grupo & { notaMedia?: number | null })[]): Grupo & { taxa: number | null } {
+  const g = lista.reduce<Grupo & { soma: number }>((a, x) => ({ total: a.total + x.total, atendidos: a.atendidos + x.atendidos, adiados: a.adiados + x.adiados, naoAtendidos: a.naoAtendidos + x.naoAtendidos, pendentes: a.pendentes + x.pendentes, avaliacoes: (a.avaliacoes ?? 0) + (x.avaliacoes ?? 0), soma: a.soma + (x.avaliacoes ?? 0) * (x.notaMedia ?? 0) }), { total: 0, atendidos: 0, adiados: 0, naoAtendidos: 0, pendentes: 0, avaliacoes: 0, soma: 0 });
+  const vencidas = g.atendidos + g.adiados + g.naoAtendidos;
+  const { soma, ...resto } = g;
+  return { ...resto, notaMedia: g.avaliacoes ? Math.round((soma / g.avaliacoes) * 100) / 100 : null, taxa: vencidas ? Math.round(((g.atendidos + g.adiados) / vencidas) * 1000) / 10 : null };
+}
+
+function Cartoes({ g, mostrarNota }: { g: Grupo & { taxa: number | null }; mostrarNota?: boolean }) {
   const itens: [string, number | string, string][] = [
     ["Atendidos", fmt(g.atendidos), "ok"],
     ["Adiados", fmt(g.adiados), "warn"],
@@ -64,11 +77,15 @@ function Cartoes({ g }: { g: Grupo & { taxa: number | null } }) {
     ["Pendentes", fmt(g.pendentes), "info"],
     ["Total agendado", fmt(g.total), "neutral"],
     ["Taxa de atendimento", pct(g.taxa), "taxa"],
+    ...(mostrarNota ? [["Nota dos clientes", g.notaMedia == null ? "—" : `★ ${nota(g.notaMedia)}`, "nota"] as [string, string, string]] : []),
   ];
   return (
     <div className="indic-cartoes">
       {itens.map(([nome, valor, tom]) => (
-        <div key={nome} className={`indic-cartao indic-${tom}`}><span>{nome}</span><strong>{valor}</strong></div>
+        <div key={nome} className={`indic-cartao indic-${tom}`}>
+          <span>{nome}</span><strong>{valor}</strong>
+          {tom === "nota" ? <small>{g.avaliacoes ? `${fmt(g.avaliacoes)} avaliações` : "nenhuma avaliação ainda"}</small> : null}
+        </div>
       ))}
     </div>
   );
@@ -99,13 +116,13 @@ function Ranking({ lista, limite }: { lista: Indicadores["ranking"]; limite?: nu
   if (!itens.length) return <EmptyState compact icon={UserX} title="Nenhum chamado no período." />;
   return (
     <table className="indic-ranking">
-      <thead><tr><th>#</th><th>Técnico</th><th>Atendidos</th><th>Adiados</th><th>Não atend.</th><th>Pend.</th><th>Taxa</th></tr></thead>
+      <thead><tr><th>#</th><th>Técnico</th><th>Atendidos</th><th>Adiados</th><th>Não atend.</th><th>Pend.</th><th>Taxa</th><th>Nota</th></tr></thead>
       <tbody>
         {itens.map((t, i) => (
           <tr key={t.tecnico}>
             <td>{i === 0 ? <Trophy size={14} aria-label="Primeiro lugar" /> : i + 1}</td>
             <td><strong>{t.tecnico}</strong><span className="indic-fio"><i style={{ width: `${((t.atendidos + t.adiados) / max) * 100}%` }} /></span></td>
-            <td>{fmt(t.atendidos)}</td><td>{fmt(t.adiados)}</td><td className={t.naoAtendidos ? "indic-alerta" : undefined}>{fmt(t.naoAtendidos)}</td><td>{fmt(t.pendentes)}</td><td>{pct(t.taxa)}</td>
+            <td>{fmt(t.atendidos)}</td><td>{fmt(t.adiados)}</td><td className={t.naoAtendidos ? "indic-alerta" : undefined}>{fmt(t.naoAtendidos)}</td><td>{fmt(t.pendentes)}</td><td>{pct(t.taxa)}</td><td title={t.avaliacoes ? `${t.avaliacoes} avaliações` : "sem avaliações"}>{t.notaMedia == null ? "—" : `★ ${nota(t.notaMedia)}`}</td>
           </tr>
         ))}
       </tbody>
@@ -147,6 +164,7 @@ function Resumida() {
                 <div className="indic-warn"><dt>Adiados</dt><dd>{fmt(g.adiados)}</dd></div>
                 <div className="indic-crit"><dt>Não atendidos</dt><dd>{fmt(g.naoAtendidos)}</dd></div>
                 <div className="indic-info"><dt>Pendentes</dt><dd>{fmt(g.pendentes)}</dd></div>
+                {g.avaliacoes ? <div className="indic-nota"><dt>Nota dos clientes</dt><dd>★ {nota(g.notaMedia)}</dd></div> : null}
               </dl>
             ) : <p className="muted">Carregando…</p>}
             {g ? <small>Taxa {pct(g.taxa)} · {fmt(g.total)} chamados</small> : null}
@@ -194,7 +212,7 @@ function Completa() {
       {!d && !q.error ? <p className="muted"><Clock size={14} /> Consultando o SGP… pode levar alguns segundos.</p> : null}
       {d ? (
         <>
-          <Cartoes g={d.totais} />
+          <Cartoes g={d.totais} mostrarNota={d.avaliacoesDisponivel !== false} />
           {periodo !== "dia" && d.porDia.length ? (
             <>
               <h3 className="indic-sub"><CalendarClock size={14} /> Chamados por dia</h3>
@@ -204,6 +222,21 @@ function Completa() {
           ) : null}
           <h3 className="indic-sub"><Trophy size={14} /> Ranking de técnicos</h3>
           <Ranking lista={d.ranking} />
+          {d.avaliacoesDisponivel && d.avaliacoes?.length ? (
+            <>
+              <h3 className="indic-sub"><MessageSquareText size={14} /> Últimas avaliações dos clientes</h3>
+              <ul className="indic-avaliacoes">
+                {d.avaliacoes.map((a) => (
+                  <li key={a.protocolo}>
+                    <div><Estrelas valor={a.nota} /><strong>{a.cliente || "Cliente"}</strong><span>→ {a.tecnico}</span></div>
+                    <small>OS {a.osId} · {a.motivo} · {a.respondidoEm ? new Date(a.respondidoEm).toLocaleDateString("pt-BR") : ""}</small>
+                    {a.comentario ? <p>“{a.comentario}”</p> : null}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {d.avaliacoesDisponivel === false ? <p className="indic-legenda">As notas dos clientes ainda não estão ligadas a este painel (falta o token do site na Agenda).</p> : null}
           {d.porMotivo.length ? (
             <>
               <h3 className="indic-sub">Motivos mais frequentes</h3>
