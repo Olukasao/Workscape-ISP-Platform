@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.109",
+    data: "2026-11-06",
+    itens: [
+      "Admin > Telefone: nova coluna \"Online\" mostra quem está com o telefone conectado agora (e quem está em chamada ou em Não perturbe).",
+    ],
+  },
+  {
     versao: "0.5.108",
     data: "2026-11-06",
     itens: [
