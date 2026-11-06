@@ -7717,3 +7717,13 @@ button.tool-card {
 .telefone-zero b { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .telefone-zero-marca { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-weight: 800; font-size: 12px; color: #04122b; background: #3ad6ff; }
 :root[data-theme="claro"] .telefone-zero { color: #14355f; background: rgba(47, 107, 255, 0.1); border-color: rgba(47, 107, 255, 0.3); }
+
+/* Recentes: opções ao clicar no número (copiar / ligar novamente) */
+.telefone-recentes li { display: flex; flex-direction: column; }
+.telefone-recentes .telefone-recente-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 6px 8px 48px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); }
+.telefone-recente-numero { flex: 1 1 100%; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: .03em; opacity: .85; }
+.telefone-recentes .telefone-recente-acoes button { display: inline-flex; width: auto; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; background: rgba(255, 255, 255, 0.12); }
+.telefone-recentes .telefone-recente-acoes button.ligar { background: rgba(47, 107, 255, 0.85); color: #fff; }
+:root[data-theme="claro"] .telefone-recentes .telefone-recente-acoes { background: rgba(20, 33, 61, 0.05); border-color: rgba(20, 33, 61, 0.14); }
+:root[data-theme="claro"] .telefone-recentes .telefone-recente-acoes button { background: rgba(20, 33, 61, 0.08); }
+:root[data-theme="claro"] .telefone-recentes .telefone-recente-acoes button.ligar { background: #2f6bff; color: #fff; }

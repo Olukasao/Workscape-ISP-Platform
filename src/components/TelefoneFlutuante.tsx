@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as TeclaEvento, type PointerEvent } from "react";
-import { BellOff, Delete, Grid3x3, Mic, MicOff, Pause, Phone, PhoneCall, PhoneForwarded, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Play, X, ExternalLink } from "lucide-react";
+import { BellOff, Copy, Delete, Grid3x3, Mic, MicOff, Pause, Phone, PhoneCall, PhoneForwarded, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Play, X, ExternalLink } from "lucide-react";
 import type { PhoneCall as Chamada } from "../../electron/phone";
 import { useTelefone } from "../stores/telefone";
 import { definirNaoPerturbe, iniciarTelefone, marcarVistas, observarTelefone, useNiveis, usePerdidasNovas, usePhone } from "../stores/phone";
@@ -31,6 +31,15 @@ const escalaSalva = () => {
 /** Lista das últimas chamadas: toque numa linha para ligar de volta. */
 function Recentes({ nomes, podeLigar, aoLigar }: { nomes: Map<string, string>; podeLigar: boolean; aoLigar: (numero: string) => void }) {
   const recentes = usePhone((s) => s.recentes);
+  // Clique no número abre as opções da linha: copiar ou ligar de novo (nada é discado sem a pessoa escolher).
+  const [aberta, setAberta] = useState<number | null>(null);
+  const [copiado, setCopiado] = useState<number | null>(null);
+  const copiar = async (id: number, numero: string) => {
+    let ok = false;
+    try { ok = (await window.desktop?.copyText?.(numero)) === true; } catch { /* tenta pelo navegador */ }
+    if (!ok) { try { await navigator.clipboard.writeText(numero); ok = true; } catch { /* sem área de transferência */ } }
+    if (ok) { setCopiado(id); window.setTimeout(() => setCopiado((v) => (v === id ? null : v)), 1800); }
+  };
   const icone = (c: ChamadaRecente) =>
     foiPerdida(c) ? <PhoneMissed size={16} aria-hidden="true" />
     : c.resultado === "falhou" ? <PhoneOff size={16} aria-hidden="true" />
@@ -48,15 +57,25 @@ function Recentes({ nomes, podeLigar, aoLigar }: { nomes: Map<string, string>; p
         const nome = quem.titulo;
         return (
           <li key={c.id}>
-            <button type="button" className={foiPerdida(c) ? "perdida" : undefined} disabled={!podeLigar || !c.numero} onClick={() => aoLigar(c.numero)}
-              aria-label={`Ligar para ${nome}. ${foiPerdida(c) ? "Chamada perdida" : c.direcao === "in" ? "Recebida" : "Feita"} ${rotuloDaChamada(c.inicio)}`}>
+            <button type="button" className={foiPerdida(c) ? "perdida" : undefined} disabled={!c.numero} aria-expanded={aberta === c.id} onClick={() => setAberta(aberta === c.id ? null : c.id)}
+              aria-label={`${nome}. ${foiPerdida(c) ? "Chamada perdida" : c.direcao === "in" ? "Recebida" : "Feita"} ${rotuloDaChamada(c.inicio)}. Abrir opções`}>
               <span className="telefone-recente-icone">{icone(c)}</span>
               <span className="telefone-recente-texto">
                 <strong>{nome}</strong>
                 <small>{quem.sub ? `${quem.sub} · ` : ""}{rotuloDaChamada(c.inicio)}{situacao(c) ? ` · ${situacao(c)}` : ""}</small>
               </span>
-              <PhoneCall size={16} className="telefone-recente-ligar" aria-hidden="true" />
             </button>
+            {aberta === c.id ? (
+              <div className="telefone-recente-acoes" role="group" aria-label={`Opções para ${c.numero}`}>
+                <span className="telefone-recente-numero">{c.numero}</span>
+                <button type="button" onClick={() => void copiar(c.id, c.numero)}>
+                  <Copy size={15} aria-hidden="true" />{copiado === c.id ? "Copiado!" : "Copiar número"}
+                </button>
+                <button type="button" className="ligar" disabled={!podeLigar} title={podeLigar ? undefined : "O telefone não está conectado"} onClick={() => { setAberta(null); aoLigar(c.numero); }}>
+                  <PhoneCall size={15} aria-hidden="true" />Ligar novamente
+                </button>
+              </div>
+            ) : null}
           </li>
         );
       })}

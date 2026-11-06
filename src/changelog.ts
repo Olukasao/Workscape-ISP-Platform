@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.116",
+    data: "2026-11-06",
+    itens: [
+      "Telefone > Recentes: ao clicar em uma chamada, abrem as opções \"Copiar número\" e \"Ligar novamente\". Antes o clique já discava na hora.",
+    ],
+  },
+  {
     versao: "0.5.115",
     data: "2026-11-06",
     itens: [
