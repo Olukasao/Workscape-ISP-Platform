@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.117",
+    data: "2026-11-06",
+    itens: [
+      "Aviso para todos: o telefone agora coloca o 0 sozinho nas ligações para números de fora. Não é preciso digitar o 0.",
+    ],
+  },
+  {
     versao: "0.5.116",
     data: "2026-11-06",
     itens: [

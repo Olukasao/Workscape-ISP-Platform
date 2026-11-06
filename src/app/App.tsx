@@ -64,6 +64,7 @@ import ContratacoesFlutuante from "../components/ContratacoesFlutuante";
 import AssistenteFlutuante from "../components/AssistenteFlutuante";
 import TelefoneFlutuante, { TelefoneJanela } from "../components/TelefoneFlutuante";
 import TelefoneMotor from "../components/TelefoneMotor";
+import NovidadeTelefone from "../components/NovidadeTelefone";
 import ChamadaRecebida from "../components/ChamadaRecebida";
 import AlarmeLembretes from "../components/AlarmeLembretes";
 import TourGuiado from "../components/TourGuiado";
@@ -314,6 +315,7 @@ function Shell() {
       <ContratacoesFlutuante />
       <AssistenteFlutuante />
       <TelefoneMotor />
+      <NovidadeTelefone />
       <ChamadaRecebida />
       <TelefoneFlutuante />
       <AlarmeLembretes />
