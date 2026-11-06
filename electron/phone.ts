@@ -59,6 +59,15 @@ export interface PhoneOptions {
 }
 
 const NUMERO = /^[0-9+*#]{1,32}$/;
+
+/**
+ * Prefixo de saída da central: número externo (com DDD ou 8+ dígitos, só dígitos) sai com "0" na frente para todo mundo.
+ * Ramais e filas (poucos dígitos), códigos com * ou #, números internacionais (+) e quem já digitou o 0 ficam como estão.
+ */
+export const PREFIXO_SAIDA = "0";
+export function numeroDeSaida(numero: string): string {
+  return /^[1-9][0-9]{7,}$/.test(numero) ? PREFIXO_SAIDA + numero : numero;
+}
 const DIGITOS = /^[0-9*#A-D]{1,32}$/;
 const TEMPO_MAX_REGISTRO_MS = 35_000;
 
@@ -100,6 +109,8 @@ export function createPhone(options: PhoneOptions) {
   const stderrTail: string[] = [];
   const confirmadas = new Set<number>(); // chamadas que chegaram a ser atendidas
   const rejeitadas = new Set<number>();
+  /** Número com o prefixo de saída → como a pessoa digitou (para mostrar e gravar no histórico). */
+  const prefixados = new Map<string, string>();
   // Chamadas recusadas sozinhas pelo Não perturbe: não tocam, mas entram no histórico como perdidas.
   const silenciadas = new Map<number, { numero: string; inicioMs: number }>();
   const snapshot: PhoneSnapshot = {
@@ -198,7 +209,10 @@ export function createPhone(options: PhoneOptions) {
       case "call_started": {
         const id = int(m.id, -1);
         if (!chamada(id)) {
-          const c: PhoneCall = { id, direcao: "out", numero: text(m.number, 64), nome: "", estado: "chamando", inicioMs: Date.now(), atendidaMs: null, mudo: false, espera: false };
+          const discado = text(m.number, 64);
+          const digitado = prefixados.get(discado);
+          prefixados.delete(discado);
+          const c: PhoneCall = { id, direcao: "out", numero: digitado ?? discado, nome: "", estado: "chamando", inicioMs: Date.now(), atendidaMs: null, mudo: false, espera: false };
           snapshot.chamadas = [...snapshot.chamadas, c];
           publicar();
         }
@@ -370,7 +384,10 @@ export function createPhone(options: PhoneOptions) {
       const n = z.string().regex(NUMERO).parse(typeof numero === "string" ? numero.trim() : numero);
       if (snapshot.registro !== "registrado") throw new Error("O telefone ainda não está conectado à central.");
       if (snapshot.chamadas.filter((c) => c.estado !== "encerrada").length >= 4) throw new Error("Muitas chamadas ao mesmo tempo.");
-      enviar({ cmd: "call", number: n });
+      const discado = numeroDeSaida(n);
+      // A tela e o histórico seguem mostrando o número como a pessoa digitou (sem o 0 que a central exige).
+      if (discado !== n) prefixados.set(discado, n);
+      enviar({ cmd: "call", number: discado });
     },
     atender: (v: unknown) => enviar({ cmd: "answer", id: idDe(v) }),
     rejeitar(v: unknown) { const id = idDe(v); rejeitadas.add(id); enviar({ cmd: "reject", id }); },

@@ -169,3 +169,29 @@ describe("phone (processo principal)", () => {
     expect(identificarRemoto("lixo")).toEqual({ numero: "", nome: "" });
   });
 });
+
+describe("prefixo de saída (0)", () => {
+  it("coloca 0 só em número externo", async () => {
+    const { numeroDeSaida } = await import("../electron/phone");
+    expect(numeroDeSaida("11999998888")).toBe("011999998888");
+    expect(numeroDeSaida("1133334444")).toBe("01133334444");
+    expect(numeroDeSaida("999998888")).toBe("0999998888");
+    // já com 0, ramais, filas, códigos e internacional ficam iguais
+    for (const igual of ["011999998888", "1003", "100001", "10002", "7781025", "*97", "#1", "+5511999998888"]) expect(numeroDeSaida(igual)).toBe(igual);
+  });
+
+  it("disca com 0 mas mostra o número como foi digitado", async () => {
+    const trace = path.join(mkdtempSync(path.join(tmpdir(), "phone-")), "trace.jsonl");
+    const { phone, eventos } = novo({ FAKE_TRACE: trace });
+    await phone.conectar("t");
+    await espera(() => phone.snapshot().registro === "registrado");
+    phone.ligar("11999998888");
+    await espera(() => phone.snapshot().chamadas.length === 1);
+    const chamada = readFileSync(trace, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).find((c) => c.cmd === "call");
+    expect(chamada.number).toBe("011999998888");
+    expect(phone.snapshot().chamadas[0].numero).toBe("11999998888");
+    phone.desligar({ id: phone.snapshot().chamadas[0].id });
+    await espera(() => eventos.some((e) => e.type === "history"));
+    expect(eventos.find((e) => e.type === "history")).toMatchObject({ numero: "11999998888" });
+  });
+});

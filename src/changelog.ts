@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.113",
+    data: "2026-11-06",
+    itens: [
+      "Telefone: ligações para números de fora (com DDD) agora saem com o 0 na frente sozinhas, para todo mundo. Você continua digitando o número normal. Ramais e filas não mudam.",
+    ],
+  },
+  {
     versao: "0.5.112",
     data: "2026-11-06",
     itens: [
