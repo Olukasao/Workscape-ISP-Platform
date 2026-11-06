@@ -20,6 +20,8 @@ export interface PhoneCall {
   atendidaMs: number | null;
   mudo: boolean;
   espera: boolean;
+  /** Resultado da última transferência pedida (mensagem de erro quando a central recusa). */
+  avisoTransferencia?: string;
 }
 export interface PhoneSnapshot {
   motor: PhoneEngineState;
@@ -214,6 +216,19 @@ export function createPhone(options: PhoneOptions) {
         } else if (estado === "early") c.estado = c.direcao === "out" ? "chamando" : c.estado;
         if (c.direcao === "out" && !c.numero) c.numero = identificarRemoto(m.remote).numero;
         publicar();
+        break;
+      }
+      case "transfer_status": {
+        const c = chamada(int(m.id, -1));
+        if (!c) break;
+        const codigo = int(m.status);
+        if (codigo >= 200 && codigo < 300) {
+          // A central aceitou: nossa perna não é mais necessária.
+          if (m.final === true) { c.avisoTransferencia = undefined; enviar({ cmd: "hangup", id: c.id }); }
+        } else if (codigo >= 300 && m.final === true) {
+          c.avisoTransferencia = codigo === 404 ? "A central não achou esse destino. Confira o ramal da fila." : codigo === 403 ? "A central não permitiu transferir para esse destino." : `A central recusou a transferência (${codigo}).`;
+          publicar();
+        }
         break;
       }
       case "call_ended": {

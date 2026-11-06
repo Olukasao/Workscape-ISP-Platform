@@ -130,7 +130,7 @@ function EmChamada({ chamada, equipe }: { chamada: Chamada; equipe: Map<string, 
           <button type="submit" disabled={!destino.trim()}>Transferir</button>
         </form>
       ) : null}
-      {aviso ? <p className="telefone-aviso" role="alert">{aviso}</p> : null}
+      {aviso || chamada.avisoTransferencia ? <p className="telefone-aviso" role="alert">{aviso || chamada.avisoTransferencia}</p> : null}
       <button type="button" className="telefone-desligar" onClick={() => void executar(d?.phoneHangup?.(chamada.id))}>
         <PhoneOff size={19} aria-hidden="true" />Desligar
       </button>
