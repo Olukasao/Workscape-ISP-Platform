@@ -3,6 +3,7 @@ import { useSession } from "../stores/workspace";
 import { useTelefone } from "../stores/telefone";
 import { iniciarTelefone, pararTelefone, registrarHistorico, usePhone } from "../stores/phone";
 import { iniciarToque, tocarSom } from "../services/toque";
+import { clients } from "../services/api";
 
 /** Sem tela: liga o telefone ao entrar no Workspace, grava o histórico e toca quando alguém liga. */
 export default function TelefoneMotor() {
@@ -26,6 +27,18 @@ export default function TelefoneMotor() {
   }, [token, userId, abrir]);
 
   useEffect(() => { if (tocando) return iniciarToque(); }, [tocando]);
+  // Avisa o servidor de que este ramal está registrado, para o administrador ver quem está online.
+  const registro = usePhone((s) => s.snapshot.registro);
+  const naoPerturbe = usePhone((s) => s.snapshot.naoPerturbe);
+  const ocupado = usePhone((s) => s.snapshot.chamadas.some((c) => c.estado === "conversando"));
+  const temRamal = usePhone((s) => s.temRamal);
+  useEffect(() => {
+    if (!token || !temRamal) return;
+    const avisar = () => { void clients.chat.post("/phone/presenca", { registro, emChamada: ocupado, naoPerturbe }).catch(() => undefined); };
+    avisar();
+    const t = window.setInterval(avisar, 30_000);
+    return () => window.clearInterval(t);
+  }, [token, temRamal, registro, ocupado, naoPerturbe]);
   // Sons de começo e fim da conversa. Só tocam quando a conversa realmente começou: chamada recusada ou perdida não faz "desligou".
   const conversando = usePhone((s) => s.snapshot.chamadas.some((c) => c.estado === "conversando"));
   const jaConversou = useRef(false);

@@ -6,7 +6,7 @@ import { api, errorMessage } from "../services/api";
 
 // Administração do Workscape Phone: ligar um ramal SIP a cada funcionário, desativar contas e consultar histórico e auditoria.
 // A senha SIP só é enviada ao salvar; o servidor a guarda cifrada e nunca a devolve a esta tela.
-interface Conta { usuarioId: number; nome: string; ramal: string; sipUser: string; sipDomain: string; sipServer: string; sipPort: number; transport: "udp" | "tcp"; displayName: string; ativo: boolean }
+interface Conta { usuarioId: number; nome: string; ramal: string; sipUser: string; sipDomain: string; sipServer: string; sipPort: number; transport: "udp" | "tcp"; displayName: string; ativo: boolean; online?: boolean; emChamada?: boolean; naoPerturbe?: boolean; visto?: string | null }
 interface Resposta { configurada: boolean; contas: Conta[]; pessoas: { id: number; nome: string }[] }
 interface Chamada { id: number; usuarioId: number; nome: string; direcao: "in" | "out"; numero: string; resultado: string; duracaoSeg: number; inicio: string }
 interface Evento { id: number; acao: string; detalhe: string; criado_em: string; ator: string | null; alvo: string | null }
@@ -24,7 +24,7 @@ export default function ControleTelefone() {
   const [editando, setEditando] = useState(false);
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
-  const dados = useQuery({ queryKey: ["admin", "phone"], queryFn: async () => (await api.get<Resposta>("/admin/phone")).data });
+  const dados = useQuery({ queryKey: ["admin", "phone"], queryFn: async () => (await api.get<Resposta>("/admin/phone")).data, refetchInterval: 20_000 });
   const historico = useQuery({ queryKey: ["admin", "phone", "chamadas"], queryFn: async () => (await api.get<{ chamadas: Chamada[] }>("/admin/phone/chamadas")).data.chamadas });
   const auditoria = useQuery({ queryKey: ["admin", "phone", "auditoria"], queryFn: async () => (await api.get<{ eventos: Evento[] }>("/admin/phone/auditoria")).data.eventos });
   const atualizar = () => { void cliente.invalidateQueries({ queryKey: ["admin", "phone"] }); };
@@ -74,15 +74,20 @@ export default function ControleTelefone() {
       {dados.isError ? <p role="alert" className="iaadm-erro">{msgDe(dados.error)}</p> : null}
       {aviso ? <p role="status" className="muted iaadm-nota">{aviso}</p> : null}
 
-      <h3 className="iaadm-h">Contas</h3>
+      <h3 className="iaadm-h">Contas{d ? ` · ${d.contas.filter((c) => c.online).length} online de ${d.contas.filter((c) => c.ativo).length}` : ""}</h3>
       <div className="versoes-tabela-caixa">
         <table className="versoes-tabela">
-          <thead><tr><th>Pessoa</th><th>Ramal</th><th>Central</th><th>Transporte</th><th>Situação</th><th /></tr></thead>
+          <thead><tr><th>Pessoa</th><th>Ramal</th><th>Online</th><th>Central</th><th>Transporte</th><th>Situação</th><th /></tr></thead>
           <tbody>
             {d?.contas.map((c) => (
               <tr key={c.usuarioId}>
                 <td>{c.nome}</td>
                 <td>{c.ramal}</td>
+                <td>
+                  {!c.ativo ? <span className="muted">—</span> : c.online
+                    ? <span title={c.visto ? `Visto às ${new Date(c.visto).toLocaleTimeString("pt-BR")}` : undefined}><i aria-hidden="true" style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: "#2ecc71", marginRight: 6 }} />{c.emChamada ? "Em chamada" : c.naoPerturbe ? "Não perturbe" : "Online"}</span>
+                    : <span className="muted"><i aria-hidden="true" style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: "#8791a7", marginRight: 6 }} />Offline</span>}
+                </td>
                 <td className="muted">{c.sipServer}:{c.sipPort}</td>
                 <td>{c.transport.toUpperCase()}</td>
                 <td>{c.ativo ? "Ativa" : "Desativada"}</td>
@@ -95,7 +100,7 @@ export default function ControleTelefone() {
                 </td>
               </tr>
             ))}
-            {d && !d.contas.length ? <tr><td colSpan={6} className="muted">Nenhum ramal cadastrado ainda.</td></tr> : null}
+            {d && !d.contas.length ? <tr><td colSpan={7} className="muted">Nenhum ramal cadastrado ainda.</td></tr> : null}
           </tbody>
         </table>
       </div>
