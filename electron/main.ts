@@ -834,7 +834,7 @@ async function bootstrap() {
         total ? `${total} mensagens não lidas` : "",
       );
   });
-  const updates = await startUpdates(win, () => { closeAllToasts(); }, () => activeTransfers === 0);
+  const updates = await startUpdates(win, () => { closeAllToasts(); }, () => activeTransfers === 0 && !phone.temChamadaAtiva());
   handle("updates:status", () => updates.status());
   handle("device:info", () => deviceInfo());
   handle("updates:check", () => updates.check());

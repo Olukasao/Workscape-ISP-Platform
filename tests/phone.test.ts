@@ -195,3 +195,18 @@ describe("prefixo de saída (0)", () => {
     expect(eventos.find((e) => e.type === "history")).toMatchObject({ numero: "11999998888" });
   });
 });
+
+describe("atualização não pode interromper ligação", () => {
+  it("temChamadaAtiva é verdadeiro durante a ligação e falso depois", async () => {
+    const { phone } = novo();
+    await phone.conectar("t");
+    await espera(() => phone.snapshot().registro === "registrado");
+    expect(phone.temChamadaAtiva()).toBe(false);
+    phone.ligar("1003");
+    await espera(() => phone.snapshot().chamadas[0]?.estado === "conversando");
+    expect(phone.temChamadaAtiva()).toBe(true);
+    phone.desligar({ id: phone.snapshot().chamadas[0].id });
+    await espera(() => phone.snapshot().chamadas.length === 0);
+    expect(phone.temChamadaAtiva()).toBe(false);
+  });
+});

@@ -389,6 +389,8 @@ export function createPhone(options: PhoneOptions) {
       if (discado !== n) prefixados.set(discado, n);
       enviar({ cmd: "call", number: discado });
     },
+    /** Há ligação tocando, sendo feita ou em andamento: o aplicativo não pode reiniciar nem fechar para atualizar. */
+    temChamadaAtiva: () => snapshot.chamadas.some((c) => c.estado !== "encerrada"),
     atender: (v: unknown) => enviar({ cmd: "answer", id: idDe(v) }),
     rejeitar(v: unknown) { const id = idDe(v); rejeitadas.add(id); enviar({ cmd: "reject", id }); },
     desligar: (v: unknown) => enviar({ cmd: "hangup", id: idDe(v) }),

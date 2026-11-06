@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.114",
+    data: "2026-11-06",
+    itens: [
+      "Telefone: o Workspace nunca reinicia nem fecha para atualizar enquanto há uma ligação tocando, sendo feita ou em andamento. A atualização espera a ligação terminar e só então é aplicada.",
+    ],
+  },
+  {
     versao: "0.5.113",
     data: "2026-11-06",
     itens: [
