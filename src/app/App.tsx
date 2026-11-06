@@ -62,7 +62,7 @@ const Cursos = lazy(() => import("../modules/cursos/Cursos"));
 const Chamados = lazy(() => import("../modules/Chamados"));
 import ContratacoesFlutuante from "../components/ContratacoesFlutuante";
 import AssistenteFlutuante from "../components/AssistenteFlutuante";
-import TelefoneFlutuante from "../components/TelefoneFlutuante";
+import TelefoneFlutuante, { TelefoneJanela } from "../components/TelefoneFlutuante";
 import TelefoneMotor from "../components/TelefoneMotor";
 import ChamadaRecebida from "../components/ChamadaRecebida";
 import AlarmeLembretes from "../components/AlarmeLembretes";
@@ -197,7 +197,8 @@ function Shell() {
     navegadorDestacado = useDestacada("navegador"),
     redeDestacada = useDestacada("rede"),
     dashboardDestacado = useDestacada("dashboard"),
-    resumoDestacado = useDestacada("resumo");
+    resumoDestacado = useDestacada("resumo"),
+    terminalDestacado = useDestacada("terminal");
   useSincronizacaoAgenda(query);
   useSincronizacaoGeral(query);
   // Link para uma OS ou conversa enquanto o módulo está em outra janela: leva a janela para frente.
@@ -398,7 +399,7 @@ function Shell() {
                     <Route path="/contratacoes" element={<Contratacoes />} />
                     <Route path="/workspaces" element={<Workspaces />} />
                     <Route path="/assistente" element={<Assistente />} />
-                    <Route path="/terminal" element={<TerminalSsh active />} />
+                    <Route path="/terminal" element={terminalDestacado ? <JanelaEmOutraTela kind="terminal" /> : <TerminalSsh active />} />
                     <Route path="/rede" element={redeDestacada ? <JanelaEmOutraTela kind="rede" /> : <RedeOlt />} />
                     <Route path="/dashboard" element={dashboardDestacado ? <JanelaEmOutraTela kind="dashboard" /> : <Dashboard />} />
                     <Route
@@ -739,13 +740,15 @@ function JanelaDestacada({ kind }: { kind: JanelaKind }) {
   return (
     <div className={`janela-destacada${compacto ? " janela-compacta" : ""}${apertada ? " janela-apertada" : ""}`}>
       {(kind === "dashboard" || kind === "resumo") && <LigacaoDashboard />}
-      {(kind === "chat" || kind === "rede" || kind === "dashboard" || kind === "resumo") && (
+      {(kind === "chat" || kind === "rede" || kind === "dashboard" || kind === "resumo" || kind === "terminal" || kind === "telefone") && (
         <div className="janela-barra">
           <strong>{MINIAPPS[kind].titulo}</strong>
           <div className="janela-barra-acoes">
-            <Button variant={compacto ? "soft" : "outline"} size="sm" aria-pressed={compacto} onClick={alternar} title="Menos textos e espaços, para ocupar pouco da tela">
-              {compacto ? <Maximize2 size={15} /> : <Minimize2 size={15} />} <span className="rotulo">{compacto ? "Normal" : "Compacto"}</span>
-            </Button>
+            {kind !== "terminal" && kind !== "telefone" && (
+              <Button variant={compacto ? "soft" : "outline"} size="sm" aria-pressed={compacto} onClick={alternar} title="Menos textos e espaços, para ocupar pouco da tela">
+                {compacto ? <Maximize2 size={15} /> : <Minimize2 size={15} />} <span className="rotulo">{compacto ? "Normal" : "Compacto"}</span>
+              </Button>
+            )}
             <Button
               variant={fixada ? "soft" : "outline"}
               size="sm"
@@ -777,6 +780,8 @@ function JanelaDestacada({ kind }: { kind: JanelaKind }) {
               {kind === "rede" && <Route path="/rede" element={<RedeOlt />} />}
               {kind === "dashboard" && <Route path="/dashboard" element={<Dashboard />} />}
               {kind === "resumo" && <Route path="/resumo" element={<Resumo />} />}
+              {kind === "terminal" && <Route path="/terminal" element={<TerminalSsh active />} />}
+              {kind === "telefone" && <Route path="/telefone" element={<TelefoneJanela />} />}
               <Route path="*" element={<Navigate to={`/${kind}?janela=1`} replace />} />
             </Routes>
           </Suspense>

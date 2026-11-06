@@ -72,6 +72,28 @@ export async function iniciarTelefone(token: string, aoReceber: (e: PhoneEvent) 
   }
 }
 
+/** Janela do telefone destacada: só acompanha a sessão que vive no processo principal (não conecta nem desliga nada). */
+export async function observarTelefone(): Promise<() => void> {
+  const d = window.desktop;
+  if (!d?.onPhoneEvent || !d.phoneState) {
+    usePhone.setState({ erro: "O telefone só funciona no aplicativo Workspace para Windows." });
+    return () => undefined;
+  }
+  const parar = d.onPhoneEvent((e) => {
+    if (e.type === "state") usePhone.getState().set(e.snapshot);
+    if (e.type === "levels") useNiveis.setState({ mic: e.mic, remoto: e.remoto, em: Date.now() });
+    // A janela principal grava a chamada no servidor; um instante depois a lista de recentes já a inclui.
+    if (e.type === "history") window.setTimeout(() => void carregarRecentes(), 1500);
+  });
+  usePhone.getState().set(await d.phoneState());
+  try {
+    const { data } = await clients.chat.get<{ disponivel: boolean; conta: unknown }>("/phone/status");
+    usePhone.setState({ temRamal: !!data.conta });
+    if (data.conta) void carregarRecentes();
+  } catch { /* o estado do motor já basta para mostrar o telefone */ }
+  return parar;
+}
+
 export async function pararTelefone() {
   ultimoToken = "";
   usePhone.setState({ temRamal: false, erro: "", recentes: [], vistoEm: Number.MAX_SAFE_INTEGER });

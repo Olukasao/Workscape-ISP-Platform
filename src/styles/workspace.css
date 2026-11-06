@@ -7709,3 +7709,6 @@ button.tool-card {
 .term-fonte button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface-2); color: var(--ink); cursor: pointer; }
 .term-fonte button:disabled { opacity: .4; cursor: not-allowed; }
 .term-antiidle { display: grid; gap: 10px; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); }
+
+/* Telefone em janela própria: o cartão preenche a janela e cresce junto com ela. */
+.telefone-card.embutido { position: static; min-height: 100%; width: 100%; border-radius: 0; animation: none; box-sizing: border-box; }

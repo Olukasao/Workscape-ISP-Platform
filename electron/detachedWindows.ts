@@ -7,7 +7,7 @@ import { attachContextMenu } from "./contextMenu";
 // Janelas destacáveis (Agenda, Chat e Navegador): a mesma interface do Workspace carregada numa
 // segunda janela com rota própria, lendo sessão e servidores do mesmo armazenamento seguro.
 // Existe no máximo uma janela de cada tipo; abrir de novo apenas a traz para frente.
-export const detachedKinds = ["agenda", "chat", "navegador", "rede", "dashboard", "resumo"] as const;
+export const detachedKinds = ["agenda", "chat", "navegador", "rede", "dashboard", "resumo", "terminal", "telefone"] as const;
 export type DetachedKind = (typeof detachedKinds)[number];
 
 const META: Record<DetachedKind, { title: string; width: number; height: number; minWidth: number; minHeight: number }> = {
@@ -17,6 +17,8 @@ const META: Record<DetachedKind, { title: string; width: number; height: number;
   rede: { title: "Rede (OLT) · Acessa Workspace", width: 980, height: 720, minWidth: 280, minHeight: 160 },
   dashboard: { title: "Painel NOC · Acessa Workspace", width: 1400, height: 860, minWidth: 280, minHeight: 160 },
   resumo: { title: "Resumo · Acessa Workspace", width: 1100, height: 780, minWidth: 280, minHeight: 160 },
+  terminal: { title: "Terminal · Acessa Workspace", width: 1100, height: 720, minWidth: 420, minHeight: 260 },
+  telefone: { title: "Workscape Phone", width: 380, height: 700, minWidth: 300, minHeight: 440 },
 };
 type Saved = { x?: number; y?: number; width: number; height: number; maximized?: boolean };
 
@@ -33,7 +35,7 @@ async function loadBounds(kind: DetachedKind): Promise<Saved> {
   };
   try {
     const raw = JSON.parse(await readFile(boundsFile(kind), "utf8")) as Saved;
-    if (![raw.width, raw.height].every((n) => Number.isFinite(n) && n >= 400)) return fallback;
+    if (![raw.width, raw.height].every((n) => Number.isFinite(n) && n >= 240)) return fallback;
     if (Number.isFinite(raw.x) && Number.isFinite(raw.y)) {
       // Se o monitor onde ela estava foi desligado, volta para a tela principal.
       const visible = screen.getAllDisplays().some((d) => {

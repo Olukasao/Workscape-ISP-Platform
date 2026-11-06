@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 
-export type JanelaKind = "agenda" | "chat" | "navegador" | "rede" | "dashboard" | "resumo";
+export type JanelaKind = "agenda" | "chat" | "navegador" | "rede" | "dashboard" | "resumo" | "terminal" | "telefone";
 
 /** Miniaplicativos: cada módulo destacável, com o título da janela e o caminho dele no Workspace. */
 export const MINIAPPS: Record<JanelaKind, { titulo: string; artigo: string }> = {
@@ -11,12 +11,14 @@ export const MINIAPPS: Record<JanelaKind, { titulo: string; artigo: string }> = 
   rede: { titulo: "Rede (OLT)", artigo: "A rede" },
   dashboard: { titulo: "Painel NOC", artigo: "O Painel NOC" },
   resumo: { titulo: "Resumo", artigo: "O resumo" },
+  terminal: { titulo: "Terminal", artigo: "O terminal" },
+  telefone: { titulo: "Workscape Phone", artigo: "O telefone" },
 };
 
 /** Qual janela destacada é este renderizador (definido pela URL ao abrir); null na janela principal. */
 export const JANELA_DESTACADA: JanelaKind | null = (() => {
   if (typeof location === "undefined") return null;
-  const m = /^#\/(agenda|chat|navegador|rede|dashboard|resumo)\?janela=1/.exec(location.hash);
+  const m = /^#\/(agenda|chat|navegador|rede|dashboard|resumo|terminal|telefone)\?janela=1/.exec(location.hash);
   return m ? (m[1] as JanelaKind) : null;
 })();
 

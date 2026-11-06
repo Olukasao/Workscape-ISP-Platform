@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.108",
+    data: "2026-11-06",
+    itens: [
+      "Telefone: novo botão \"Destacar\" no topo do cartão. O telefone vira uma janela própria, que você pode levar para outro monitor, fixar por cima e redimensionar (o telefone cresce junto com a janela).",
+      "Terminal: novo botão \"Destacar\" para abrir o Terminal em uma janela separada. As sessões abertas na janela destacada fecham quando ela é fechada.",
+    ],
+  },
+  {
     versao: "0.5.107",
     data: "2026-11-06",
     itens: [

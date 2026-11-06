@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import { useSession, usePreferences } from "../stores/workspace";
 import { TEMAS_TERMINAL, temaPorId, FONTE_MIN, FONTE_MAX } from "../services/terminalTemas";
 import { Button } from "../components/ui/button";
+import BotaoDestacar from "../components/BotaoDestacar";
 import { errorMessage } from "../services/api";
 import { lerEnderecoRapido, portaPadrao, ANTI_IDLE_PADRAO, MODOS_ANTI_IDLE, type AntiIdle, type EquipamentoForm, type EquipamentoTerminal, type ProtocoloTerminal } from "../services/terminal";
 import { abrirSessao, aplicarAparencia, ativarSessao, definirAntiIdle, fecharSessao, useSessoesTerminal, type Sessao } from "../services/terminalSessoes";
@@ -116,6 +117,7 @@ export default function Terminal({ active }: { active: boolean }) {
             ))}
           </div>
           <div className="term-ferramentas">
+            <BotaoDestacar kind="terminal" />
             <button type="button" className={clsx("term-ico", atual?.antiIdle.ativo && "ligado")} disabled={!atual} aria-label="Anti-idle" title={atual ? (atual.antiIdle.ativo ? `Anti-idle ligado (a cada ${atual.antiIdle.segundos} s)` : "Anti-idle desligado") : "Abra uma sessão para usar o anti-idle"} onClick={() => setMenu(menu === "antiidle" ? null : "antiidle")}><Timer size={16} /></button>
             <button type="button" className="term-ico" aria-label="Temas e letra" title="Temas e tamanho da letra" onClick={() => setMenu(menu === "tema" ? null : "tema")}><Palette size={16} /></button>
           </div>

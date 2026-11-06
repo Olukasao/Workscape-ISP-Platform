@@ -38,7 +38,7 @@ import { resolveExternalUrl, resolveModuleTarget } from "./moduleNavigation";
 import { isPinnedAgendaCertificate } from "./agendaTrust";
 import { isPinnedUpdateCertificate } from "./updateTrust";
 import { showToast, initToasts, closeAllToasts } from "./toast";
-import { initDetachedWindows, openDetached, closeDetached, setDetachedOnTop, setDetachedCompact, captureDetachedLayout, closeAllDetached, detachedKindOf, detachedKinds, isDetachedOpen, type DetachedKind } from "./detachedWindows";
+import { initDetachedWindows, openDetached, closeDetached, setDetachedOnTop, setDetachedCompact, captureDetachedLayout, closeAllDetached, detachedContents, detachedKindOf, detachedKinds, isDetachedOpen, type DetachedKind } from "./detachedWindows";
 import { initBrowserTabs, showBrowser, updateBrowserBounds, hideBrowser, moveBrowserTabs, browserAction, browserOpenUrl, closeBrowserTabs, resetBrowserTabs, setAgendaWebSession, browserSites } from "./browserTabs";
 import { deleteWorkspace, findWorkspace, listWorkspaces, saveWorkspace, tileLayout, workspaceItemSchema } from "./workspaces";
 import { attachContextMenu, configureSpellChecker } from "./contextMenu";
@@ -86,6 +86,9 @@ const DETACHED_CHANNELS: Record<DetachedKind, Set<string>> = {
   rede: new Set([...BASE_CHANNELS, "clipboard:write-text"]),
   dashboard: new Set([...BASE_CHANNELS, "dashboard:refresh", "external:open"]),
   resumo: new Set([...BASE_CHANNELS, "dashboard:refresh", "external:open"]),
+  terminal: new Set([...BASE_CHANNELS, "clipboard:write-text", "terminal:listar", "terminal:salvar", "terminal:excluir", "terminal:esquecer-chave", "terminal:conectar", "terminal:entrada", "terminal:tamanho", "terminal:anti-idle", "terminal:fechar"]),
+  // O telefone destacado só mostra e comanda a sessão que vive no processo principal (nunca a desliga).
+  telefone: new Set([...BASE_CHANNELS, "phone:state", "phone:connect", "phone:call", "phone:answer", "phone:reject", "phone:hangup", "phone:mute", "phone:hold", "phone:dtmf", "phone:transfer", "phone:dnd", "phone:devices", "phone:set-devices"]),
 };
 function trusted(e: IpcMainInvokeEvent, channel: string) {
   const kind = detachedKindOf(e.sender);
@@ -321,6 +324,8 @@ async function bootstrap() {
     chatOrigin: () => config.chat,
     send: (event) => {
       if (!win.isDestroyed()) win.webContents.send("phone:event", event);
+      const fora = detachedContents("telefone");
+      if (fora && !fora.isDestroyed()) fora.send("phone:event", event);
       // Com o Workspace minimizado, na bandeja ou sem foco, a faixa dentro da janela não é vista: avisa pelo canto da tela.
       const segundoPlano = win.isDestroyed() || win.isMinimized() || !win.isVisible() || !win.isFocused();
       if (!segundoPlano) return;
@@ -371,6 +376,7 @@ async function bootstrap() {
   handle("phone:diagnostico", () => ({ motor: phoneEnginePath ? path.basename(phoneEnginePath) : null, log: phone.stderrTail() }));
   app.on("before-quit", () => { void phone.parar(); });
   // Terminal SSH/Telnet: a conexão fica aqui; a interface só recebe os bytes e nunca vê senhas salvas.
+  const donosTerminal = new Map<string, Electron.WebContents>();
   const terminal = new ServicoTerminal(
     (dono) => path.join(app.getPath("userData"), `terminal-equipamentos-${dono.replace(/[^A-Za-z0-9_-]/g, "_")}.json`),
     path.join(app.getPath("userData"), "terminal-chaves.json"),
@@ -379,18 +385,28 @@ async function bootstrap() {
       cifrar: (t) => safeStorage.encryptString(t).toString("base64"),
       decifrar: (b) => safeStorage.decryptString(Buffer.from(b, "base64")),
     },
-    (canal, payload) => { if (!win.isDestroyed()) win.webContents.send(canal, payload); },
+    // Cada sessão responde à janela que a abriu (principal ou Terminal destacado).
+    (canal, payload) => {
+      const dono = donosTerminal.get((payload as { sessao?: string } | null)?.sessao ?? "");
+      const alvo = dono && !dono.isDestroyed() ? dono : win.isDestroyed() ? null : win.webContents;
+      alvo?.send(canal, payload);
+    },
   );
   const donoTerminal = z.string().min(1).max(64);
   handle("terminal:listar", (p) => terminal.listar(donoTerminal.parse(p)));
   handle("terminal:salvar", (p) => { const v = z.object({ dono: donoTerminal, equipamento: z.unknown() }).strict().parse(p); return terminal.salvar(v.dono, v.equipamento); });
   handle("terminal:excluir", (p) => { const v = z.object({ dono: donoTerminal, id: z.string().max(64) }).strict().parse(p); return terminal.excluir(v.dono, v.id); });
   handle("terminal:esquecer-chave", (p) => { const v = z.object({ host: z.string().max(253), porta: z.number().int().min(1).max(65535) }).strict().parse(p); return terminal.esquecerChave(v.host, v.porta); });
-  handle("terminal:conectar", (p) => { const v = z.object({ dono: donoTerminal, conexao: z.unknown() }).strict().parse(p); return terminal.conectar(v.dono, v.conexao); });
+  handle("terminal:conectar", (p, e) => {
+    const v = z.object({ dono: donoTerminal, conexao: z.unknown() }).strict().parse(p);
+    const sessao = (v.conexao as { sessao?: unknown } | null)?.sessao;
+    if (typeof sessao === "string") donosTerminal.set(sessao, e.sender);
+    return terminal.conectar(v.dono, v.conexao);
+  });
   handle("terminal:entrada", (p) => { const v = z.object({ sessao: z.string().max(64), dados: z.string().max(65536) }).strict().parse(p); terminal.entrada(v.sessao, v.dados); });
   handle("terminal:tamanho", (p) => { const v = z.object({ sessao: z.string().max(64), cols: z.number().int().min(10).max(500), rows: z.number().int().min(2).max(200) }).strict().parse(p); terminal.tamanho(v.sessao, v.cols, v.rows); });
   handle("terminal:anti-idle", (p) => { const v = z.object({ sessao: z.string().max(64), config: z.unknown() }).strict().parse(p); terminal.configurarAntiIdle(v.sessao, v.config); });
-  handle("terminal:fechar", (p) => { terminal.fechar(z.object({ sessao: z.string().max(64) }).strict().parse(p).sessao); });
+  handle("terminal:fechar", (p) => { const sessao = z.object({ sessao: z.string().max(64) }).strict().parse(p).sessao; terminal.fechar(sessao); donosTerminal.delete(sessao); });
   app.on("before-quit", () => terminal.fecharTodas());
   // Diagnóstico de conexão (útil pela VPN): testa a porta de cada servidor e confere a VPN do Windows.
   const alvos = () => [
@@ -606,7 +622,9 @@ async function bootstrap() {
       if (!win.isDestroyed()) win.webContents.send("detached:state", { kind, open });
     },
     // O Navegador devolve as páginas abertas à janela principal antes de a janela destacada fechar.
-    (_kind, closing) => {
+    (kind, closing) => {
+      // Sessões do Terminal abertas na janela destacada acabam junto com ela.
+      if (kind === "terminal") for (const [sessao, dono] of donosTerminal) if (dono === closing.webContents) { terminal.fechar(sessao); donosTerminal.delete(sessao); }
       // Páginas abertas (Navegador ou versão web da agenda) voltam à janela principal antes de a destacada fechar.
       moveBrowserTabs(win, closing);
     },

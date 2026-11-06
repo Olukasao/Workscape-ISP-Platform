@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as TeclaEvento, type PointerEvent } from "react";
-import { BellOff, Delete, Grid3x3, Mic, MicOff, Pause, Phone, PhoneCall, PhoneForwarded, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Play, X } from "lucide-react";
+import { BellOff, Delete, Grid3x3, Mic, MicOff, Pause, Phone, PhoneCall, PhoneForwarded, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Play, X, ExternalLink } from "lucide-react";
 import type { PhoneCall as Chamada } from "../../electron/phone";
 import { useTelefone } from "../stores/telefone";
-import { definirNaoPerturbe, iniciarTelefone, marcarVistas, useNiveis, usePerdidasNovas, usePhone } from "../stores/phone";
+import { definirNaoPerturbe, iniciarTelefone, marcarVistas, observarTelefone, useNiveis, usePerdidasNovas, usePhone } from "../stores/phone";
 import { useNomesPorRamal } from "../services/ramais";
 import { iniciais, identificarChamador, nivelParaAnel } from "../services/chamador";
 import { duracaoCurta, foiPerdida, rotuloDaChamada, type ChamadaRecente } from "../services/chamadasRecentes";
 import { useSession } from "../stores/workspace";
 import { useArrastar } from "./useArrastar";
+import { JANELA_DESTACADA, destacar, podeDestacar, useDestacada } from "../services/janelaDestacada";
 
 const TECLAS = [
   ["1", ""], ["2", "ABC"], ["3", "DEF"],
@@ -153,7 +154,11 @@ const RESUMO_REGISTRO: Record<string, string> = {
 
 /** Card de vidro com o discador do Workscape Phone: a ligação sai pelo seu ramal, dentro do Workspace. Arrasta pelo topo. */
 export default function TelefoneFlutuante() {
-  const aberto = useTelefone((s) => s.aberto);
+  // Na janela própria do telefone o cartão ocupa a janela inteira, sempre aberto, e cresce junto com ela.
+  const embutido = JANELA_DESTACADA === "telefone";
+  const emOutraJanela = useDestacada("telefone");
+  const abertoLoja = useTelefone((s) => s.aberto);
+  const aberto = embutido || (abertoLoja && !emOutraJanela);
   const fechar = useTelefone((s) => s.fechar);
   const user = useSession((s) => s.user);
   const token = useSession((s) => s.token);
@@ -190,6 +195,17 @@ export default function TelefoneFlutuante() {
   // Crescer o telefone perto da borda da tela não pode deixá-lo para fora.
   const { definir, posicao } = card;
   useEffect(() => { definir(posicao); }, [escala]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Pedido para abrir o telefone enquanto ele está em outra janela: leva essa janela para a frente.
+  useEffect(() => {
+    if (!embutido && emOutraJanela && abertoLoja) { destacar("telefone"); fechar(); }
+  }, [embutido, emOutraJanela, abertoLoja, fechar]);
+  useEffect(() => {
+    if (!embutido) return;
+    const ajustar = () => setEscala(limitarEscala(window.innerWidth / LARGURA));
+    ajustar();
+    window.addEventListener("resize", ajustar);
+    return () => window.removeEventListener("resize", ajustar);
+  }, [embutido]);
 
   useEffect(() => {
     if (!aberto) { setNumero(""); setAviso(""); return; }
@@ -242,13 +258,13 @@ export default function TelefoneFlutuante() {
 
   return (
     <div
-      className={`telefone-card${card.arrastando ? " arrastando" : ""}`}
+      className={`telefone-card${card.arrastando ? " arrastando" : ""}${embutido ? " embutido" : ""}`}
       role="dialog"
       aria-label="Workscape Phone"
-      style={{ left: card.posicao.x, top: card.posicao.y, width: LARGURA * escala }}
+      style={embutido ? undefined : { left: card.posicao.x, top: card.posicao.y, width: LARGURA * escala }}
     >
-      <div className="telefone-escala" style={{ zoom: escala, width: LARGURA }}>
-      <header {...card.vincular} title="Arraste para mover">
+      <div className="telefone-escala" style={{ zoom: escala, width: embutido ? undefined : LARGURA }}>
+      <header {...(embutido ? {} : card.vincular)} title={embutido ? undefined : "Arraste para mover"}>
         <span className="telefone-card-icone"><Phone size={15} aria-hidden="true" /></span>
         <div className="telefone-titulo">
           <strong>Workscape Phone</strong>
@@ -264,7 +280,10 @@ export default function TelefoneFlutuante() {
             <BellOff size={16} aria-hidden="true" />
           </button>
         ) : null}
-        <button type="button" aria-label="Fechar" title="Fechar (Esc)" onClick={fechar}><X size={16} /></button>
+        {!embutido && podeDestacar() ? (
+          <button type="button" aria-label="Destacar" title="Abrir o telefone em uma janela separada, que pode ficar em outro monitor" onClick={() => { destacar("telefone"); fechar(); }}><ExternalLink size={16} /></button>
+        ) : null}
+        {!embutido ? <button type="button" aria-label="Fechar" title="Fechar (Esc)" onClick={fechar}><X size={16} /></button> : null}
       </header>
       {phone.naoPerturbe && temRamal ? (
         <div className="telefone-dnd-aviso" role="status">
@@ -323,7 +342,7 @@ export default function TelefoneFlutuante() {
         </>
       )}
       </div>
-      <button
+      {embutido ? null : <button
         type="button"
         className="telefone-alca"
         title="Arraste para mudar o tamanho (setas do teclado ajustam; duplo clique volta ao normal)"
@@ -334,7 +353,18 @@ export default function TelefoneFlutuante() {
         onPointerCancel={() => { alca.current = null; }}
         onKeyDown={alcaTecla}
         onDoubleClick={() => mudarEscala(1)}
-      />
+      />}
     </div>
   );
+}
+
+/** Conteúdo da janela própria do telefone: acompanha a sessão do processo principal e mostra o mesmo cartão. */
+export function TelefoneJanela() {
+  useEffect(() => {
+    let parar: (() => void) | undefined;
+    let fechado = false;
+    void observarTelefone().then((p) => { if (fechado) p(); else parar = p; });
+    return () => { fechado = true; parar?.(); };
+  }, []);
+  return <TelefoneFlutuante />;
 }

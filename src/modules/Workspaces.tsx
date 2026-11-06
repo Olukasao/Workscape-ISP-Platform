@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, ChartNoAxesCombined, Globe, LayoutDashboard, LayoutGrid, MessageSquare, Pin, Play, RadioTower, Save, Trash2, XCircle } from "lucide-react";
+import { CalendarDays, ChartNoAxesCombined, Globe, LayoutDashboard, LayoutGrid, MessageSquare, Phone, Pin, Play, RadioTower, Save, SquareTerminal, Trash2, XCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge, EmptyState, PageHeader } from "../components/ui/primitives";
 import { errorMessage } from "../services/api";
@@ -14,6 +14,8 @@ const ICONES: Record<JanelaKind, typeof Globe> = {
   rede: RadioTower,
   dashboard: ChartNoAxesCombined,
   resumo: LayoutDashboard,
+  terminal: SquareTerminal,
+  telefone: Phone,
 };
 const ORDEM: JanelaKind[] = ["dashboard", "rede", "agenda", "chat", "resumo", "navegador"];
 
