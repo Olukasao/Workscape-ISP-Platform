@@ -8,6 +8,7 @@ import { iniciais, identificarChamador, nivelParaAnel } from "../services/chamad
 import { duracaoCurta, foiPerdida, rotuloDaChamada, type ChamadaRecente } from "../services/chamadasRecentes";
 import { useSession } from "../stores/workspace";
 import { useArrastar } from "./useArrastar";
+import { numeroDeSaida } from "../../electron/prefixoSaida";
 import { JANELA_DESTACADA, destacar, podeDestacar, useDestacada } from "../services/janelaDestacada";
 
 const TECLAS = [
@@ -309,6 +310,14 @@ export default function TelefoneFlutuante() {
           </div>
           {aba === "recentes" ? <Recentes nomes={nomes} podeLigar={pelaCentral} aoLigar={(n) => void religar(n)} /> : (
           <form onSubmit={ligar}>
+            <p className="telefone-zero" role="note">
+              <span className="telefone-zero-marca" aria-hidden="true">0</span>
+              {(() => {
+                const limpo = numero.replace(/[^0-9+*#]/g, "");
+                const saida = numeroDeSaida(limpo);
+                return saida !== limpo ? <>Vai discar <b>{saida}</b></> : <>Já vem com 0: números de fora saem com 0 na frente, não digite.</>;
+              })()}
+            </p>
             <div className="telefone-visor">
               <input
                 ref={campo}

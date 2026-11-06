@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.115",
+    data: "2026-11-06",
+    itens: [
+      "Telefone: aviso no topo do teclado dizendo que o 0 já vem sozinho. Ao digitar um número de fora, aparece como ele vai ser discado (por exemplo, Vai discar 011999998888).",
+    ],
+  },
+  {
     versao: "0.5.114",
     data: "2026-11-06",
     itens: [

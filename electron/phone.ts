@@ -60,14 +60,8 @@ export interface PhoneOptions {
 
 const NUMERO = /^[0-9+*#]{1,32}$/;
 
-/**
- * Prefixo de saída da central: número externo (com DDD ou 8+ dígitos, só dígitos) sai com "0" na frente para todo mundo.
- * Ramais e filas (poucos dígitos), códigos com * ou #, números internacionais (+) e quem já digitou o 0 ficam como estão.
- */
-export const PREFIXO_SAIDA = "0";
-export function numeroDeSaida(numero: string): string {
-  return /^[1-9][0-9]{7,}$/.test(numero) ? PREFIXO_SAIDA + numero : numero;
-}
+import { numeroDeSaida } from "./prefixoSaida";
+export { numeroDeSaida, PREFIXO_SAIDA } from "./prefixoSaida";
 const DIGITOS = /^[0-9*#A-D]{1,32}$/;
 const TEMPO_MAX_REGISTRO_MS = 35_000;
 
