@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock, MessageSquareText, Star, Trophy, UserX } from "lucide-react";
 import { clients, errorMessage } from "../services/api";
@@ -15,7 +15,7 @@ interface Indicadores {
   de: string; ate: string; geradoEm: string;
   totais: Grupo & { taxa: number | null };
   porDia: (Grupo & { data: string; taxa: number | null })[];
-  ranking: (Grupo & { tecnico: string; taxa: number | null })[];
+  ranking: (Grupo & { tecnico: string; taxa: number | null; tiposDistintos?: number; tipos?: { motivo: string; quantidade: number }[] })[];
   porMotivo: (Grupo & { motivo: string })[];
   avaliacoesDisponivel?: boolean;
   avaliacoes?: Avaliacao[];
@@ -111,20 +111,44 @@ function Barras({ dias }: { dias: Indicadores["porDia"] }) {
 }
 
 function Ranking({ lista, limite }: { lista: Indicadores["ranking"]; limite?: number }) {
+  const [aberto, setAberto] = useState<string | null>(null);
   const itens = limite ? lista.slice(0, limite) : lista;
   const max = Math.max(1, ...itens.map((t) => t.atendidos + t.adiados));
   if (!itens.length) return <EmptyState compact icon={UserX} title="Nenhum chamado no período." />;
   return (
     <table className="indic-ranking">
-      <thead><tr><th>#</th><th>Técnico</th><th>Atendidos</th><th>Adiados</th><th>Não atend.</th><th>Pend.</th><th>Taxa</th><th>Nota</th></tr></thead>
+      <thead><tr><th>#</th><th>Técnico</th><th>Atendidos</th><th>Tipos</th><th>Adiados</th><th>Não atend.</th><th>Pend.</th><th>Taxa</th><th>Nota</th></tr></thead>
       <tbody>
-        {itens.map((t, i) => (
-          <tr key={t.tecnico}>
-            <td>{i === 0 ? <Trophy size={14} aria-label="Primeiro lugar" /> : i + 1}</td>
-            <td><strong>{t.tecnico}</strong><span className="indic-fio"><i style={{ width: `${((t.atendidos + t.adiados) / max) * 100}%` }} /></span></td>
-            <td>{fmt(t.atendidos)}</td><td>{fmt(t.adiados)}</td><td className={t.naoAtendidos ? "indic-alerta" : undefined}>{fmt(t.naoAtendidos)}</td><td>{fmt(t.pendentes)}</td><td>{pct(t.taxa)}</td><td title={t.avaliacoes ? `${t.avaliacoes} avaliações` : "sem avaliações"}>{t.notaMedia == null ? "—" : `★ ${nota(t.notaMedia)}`}</td>
-          </tr>
-        ))}
+        {itens.map((t, i) => {
+          const aberta = aberto === t.tecnico;
+          return (
+            <Fragment key={t.tecnico}>
+              <tr className={aberta ? "indic-aberta" : undefined}>
+                <td>{i === 0 ? <Trophy size={14} aria-label="Primeiro lugar" /> : i + 1}</td>
+                <td><strong>{t.tecnico}</strong><span className="indic-fio"><i style={{ width: `${((t.atendidos + t.adiados) / max) * 100}%` }} /></span></td>
+                <td>{fmt(t.atendidos)}</td>
+                <td>
+                  {t.tiposDistintos ? (
+                    <button type="button" className="indic-tipos-botao" aria-expanded={aberta} title="Ver o que cada técnico atendeu, por tipo de chamado" onClick={() => setAberto(aberta ? null : t.tecnico)}>
+                      {t.tiposDistintos} {t.tiposDistintos === 1 ? "tipo" : "tipos"}
+                    </button>
+                  ) : "—"}
+                </td>
+                <td>{fmt(t.adiados)}</td><td className={t.naoAtendidos ? "indic-alerta" : undefined}>{fmt(t.naoAtendidos)}</td><td>{fmt(t.pendentes)}</td><td>{pct(t.taxa)}</td><td title={t.avaliacoes ? `${t.avaliacoes} avaliações` : "sem avaliações"}>{t.notaMedia == null ? "—" : `★ ${nota(t.notaMedia)}`}</td>
+              </tr>
+              {aberta && t.tipos?.length ? (
+                <tr className="indic-detalhe">
+                  <td />
+                  <td colSpan={8}>
+                    <ul className="indic-tipos" aria-label={`Tipos de chamado atendidos por ${t.tecnico}`}>
+                      {t.tipos.map((x) => <li key={x.motivo}><span>{x.motivo}</span><b>{fmt(x.quantidade)}</b></li>)}
+                    </ul>
+                  </td>
+                </tr>
+              ) : null}
+            </Fragment>
+          );
+        })}
       </tbody>
     </table>
   );
@@ -173,8 +197,8 @@ function Resumida() {
       </div>
       {mensal.data?.ranking.length ? (
         <>
-          <h3 className="indic-sub"><Trophy size={14} /> Top 3 do mês</h3>
-          <Ranking lista={mensal.data.ranking} limite={3} />
+          <h3 className="indic-sub"><Trophy size={14} /> Top 10 do mês</h3>
+          <Ranking lista={mensal.data.ranking} limite={10} />
         </>
       ) : null}
     </section>

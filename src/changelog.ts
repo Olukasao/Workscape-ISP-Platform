@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.112",
+    data: "2026-11-06",
+    itens: [
+      "Dashboard > Atendimento dos técnicos: o ranking agora mostra quantos tipos de chamado cada técnico atendeu. Clique em \"tipos\" para ver o detalhe (por exemplo, Remoção de KIT 14, Offline 8).",
+      "A visão resumida passou do top 3 para o top 10 do mês.",
+    ],
+  },
+  {
     versao: "0.5.111",
     data: "2026-11-06",
     itens: [
