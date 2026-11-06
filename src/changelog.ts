@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.110",
+    data: "2026-11-06",
+    itens: [
+      "Dashboard: novo painel \"Atendimento dos técnicos\" com atendidos, adiados, não atendidos e pendentes. Na visão resumida: hoje, semana, mês e o top 3. Na visão completa: dia, semana ou mês (com setas para navegar), gráfico por dia, ranking completo dos técnicos e motivos mais frequentes.",
+    ],
+  },
+  {
     versao: "0.5.109",
     data: "2026-11-06",
     itens: [

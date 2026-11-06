@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { reconectarDashboard, useDashboard } from "../services/dashboard";
 import DashboardResumido from "./DashboardResumido";
+import IndicadoresAtendimento from "./IndicadoresAtendimento";
 import DashboardConnection from "../components/DashboardConnection";
 import {
   countTone,
@@ -406,6 +407,7 @@ export default function Dashboard() {
         </>
       )}
       <DashboardConnection />
+      {agendaAllowed ? <IndicadoresAtendimento modo={compact ? "resumido" : "completo"} /> : null}
       <dialog
         className="running-dialog"
         ref={dialog}
