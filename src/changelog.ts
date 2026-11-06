@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    versao: "0.5.107",
+    data: "2026-11-06",
+    itens: [
+      "Telefone: ao transferir uma chamada, há botões prontos para Suporte, Financeiro e Comercial.",
+      "Telefone: se a central recusar a transferência, o motivo aparece na tela; quando ela aceita, a sua ligação é encerrada sozinha.",
+    ],
+  },
+  {
     versao: "0.5.106",
     data: "2026-11-05",
     itens: [

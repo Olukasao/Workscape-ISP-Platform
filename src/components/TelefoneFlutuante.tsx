@@ -83,6 +83,8 @@ function AvatarChamada({ titulo, ativo }: { titulo: string; ativo: boolean }) {
   );
 }
 
+const FILAS: [string, string][] = [["Suporte", "100001"], ["Financeiro", "10002"], ["Comercial", "10003"]];
+
 /** Controles de uma ligação em andamento. A sessão SIP fica no processo principal: trocar de tela não derruba a chamada. */
 function EmChamada({ chamada, equipe }: { chamada: Chamada; equipe: Map<string, string> }) {
   const [teclado, setTeclado] = useState(false);
@@ -125,10 +127,17 @@ function EmChamada({ chamada, equipe }: { chamada: Chamada; equipe: Map<string, 
         </div>
       ) : null}
       {transferir ? (
+        <>
+        <div className="telefone-filas" role="group" aria-label="Transferir para a fila">
+          {FILAS.map(([nome, ramal]) => (
+            <button type="button" key={ramal} onClick={async () => { if (await executar(d?.phoneTransfer?.(chamada.id, ramal))) { setDestino(""); setTransferir(false); } }}>{nome}</button>
+          ))}
+        </div>
         <form className="telefone-transferir" onSubmit={async (e) => { e.preventDefault(); if (destino.trim() && (await executar(d?.phoneTransfer?.(chamada.id, destino.trim())))) { setDestino(""); setTransferir(false); } }}>
           <input type="tel" inputMode="tel" autoComplete="off" autoFocus aria-label="Ramal de destino" placeholder="Ramal de destino" value={destino} onChange={(e) => setDestino(e.target.value.replace(/[^0-9+*#]/g, ""))} />
           <button type="submit" disabled={!destino.trim()}>Transferir</button>
         </form>
+        </>
       ) : null}
       {aviso || chamada.avisoTransferencia ? <p className="telefone-aviso" role="alert">{aviso || chamada.avisoTransferencia}</p> : null}
       <button type="button" className="telefone-desligar" onClick={() => void executar(d?.phoneHangup?.(chamada.id))}>
